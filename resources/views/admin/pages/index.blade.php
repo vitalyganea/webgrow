@@ -1,0 +1,51 @@
+<x-auth-layout title="Pages">
+    <x-slot:header>
+        All Pages
+    </x-slot:header>
+
+    <div class="mb-4 text-right">
+        <a href="{{ route('create.page') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            + New Page
+        </a>
+    </div>
+
+    <div class="overflow-x-auto bg-white rounded shadow">
+        <table class="w-full table-auto">
+            <thead class="bg-gray-100 text-left text-sm font-semibold text-gray-600">
+            <tr>
+                <th class="px-4 py-2">Title</th>
+                <th class="px-4 py-2">Slug</th>
+                <th class="px-4 py-2">Created At</th>
+                <th class="px-4 py-2">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="text-sm text-gray-700">
+            @forelse ($pages as $page)
+                <tr class="border-t">
+                    <td class="px-4 py-2">{{ $page->title }}</td>
+                    <td class="px-4 py-2">{{ $page->slug }}</td>
+                    <td class="px-4 py-2">{{ $page->created_at->format('Y-m-d') }}</td>
+                    <td class="px-4 py-2 space-x-2">
+                        <a href="{{ route('edit.page', $page) }}" class="text-blue-600 hover:underline">Edit</a>
+                        <form action="{{ route('delete.page', $page) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" onclick="return confirm('Are you sure?')" class="text-red-600 hover:underline">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="px-4 py-4 text-center text-gray-500">No pages found.</td>
+                </tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        {{ $pages->links() }}
+    </div>
+</x-auth-layout>
