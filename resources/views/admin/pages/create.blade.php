@@ -10,7 +10,7 @@
             </x-slot:header>
 
             <x-slot:content>
-                <form method="POST" action="{{ route('store.page') }}">
+                <form method="POST" action="{{ route('admin.store.page') }}">
                     @csrf
 
                     <div>

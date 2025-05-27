@@ -9,7 +9,7 @@
             <!-- Session Status -->
             <x-auth-session-status class="mb-4" :status="session('status')" />
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('admin.login') }}">
                 @csrf
 
                 <!-- Email Address -->
@@ -36,7 +36,7 @@
                 </div>
 
                 <div class="mt-4 flex items-center justify-end">
-                    <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ route('register') }}">
+                    <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ route('admin.register') }}">
                         {{ __('Register?') }}
                     </a>
 

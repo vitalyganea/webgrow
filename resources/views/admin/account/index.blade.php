@@ -9,7 +9,7 @@
                 <x-slot:description>Update your account's accout information and email address.</x-slot:description>
             </x-slot:header>
             <x-slot:content>
-                <form method="post" action="{{ route('settings.account') }}">
+                <form method="post" action="{{ route('admin.settings.account') }}">
                     @csrf
                     @method('patch')
                     <div>

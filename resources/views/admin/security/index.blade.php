@@ -9,7 +9,7 @@
                 <x-slot:description>Ensure your account is using a long, random password to stay secure.</x-slot:description>
             </x-slot:header>
             <x-slot:content>
-                <form action="{{ route('settings.security') }}" method="post">
+                <form action="{{ route('admin.settings.security') }}" method="post">
                     @csrf
                     @method('put')
                     <div>

@@ -5,7 +5,7 @@
             <x-slot:description>Hi, feel free to register</x-slot:description>
         </x-slot:header>
         <x-slot:content>
-            <form method="POST" action="{{ route('register') }}">
+            <form method="POST" action="{{ route('admin.register') }}">
                 @csrf
 
                 <!-- Name -->
@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="mt-4 flex items-center justify-end">
-                    <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ route('login') }}">
+                    <a class="text-sm text-muted-foreground hover:text-foreground" href="{{ route('admin.login') }}">
                         {{ __('Already registered?') }}
                     </a>
 

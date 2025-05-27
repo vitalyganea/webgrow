@@ -16,7 +16,7 @@
             <x-slot:content>
                 <x-button x-data="" variant="destructive" x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')">{{ __('Delete Account') }}</x-button>
                 <x-modal name="confirm-user-deletion" maxWidth="xl" :show="$errors->userDeletion->isNotEmpty()" focusable>
-                    <form class="p-6" method="post" action="{{ route('settings.danger') }}">
+                    <form class="p-6" method="post" action="{{ route('admin.settings.danger') }}">
                         @csrf
                         @method('delete')
                         <h2 class="mb-2 text-xl font-semibold leading-none tracking-tight">

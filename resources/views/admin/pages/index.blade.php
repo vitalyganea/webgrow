@@ -4,7 +4,7 @@
     </x-slot:header>
 
     <div class="mb-4 text-right">
-        <a href="{{ route('create.page') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <a href="{{ route('admin.create.page') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
             + New Page
         </a>
     </div>
@@ -26,8 +26,8 @@
                     <td class="px-4 py-2">{{ $page->slug }}</td>
                     <td class="px-4 py-2">{{ $page->created_at->format('Y-m-d') }}</td>
                     <td class="px-4 py-2 space-x-2">
-                        <a href="{{ route('edit.page', $page) }}" class="text-blue-600 hover:underline">Edit</a>
-                        <form action="{{ route('delete.page', $page) }}" method="POST" class="inline">
+                        <a href="{{ route('admin.edit.page', $page) }}" class="text-blue-600 hover:underline">Edit</a>
+                        <form action="{{ route('admin.delete.page', $page) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" onclick="return confirm('Are you sure?')" class="text-red-600 hover:underline">

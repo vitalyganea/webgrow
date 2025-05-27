@@ -30,6 +30,6 @@ class AccountController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('settings.account')->with('status', 'account-updated');
+        return Redirect::route('admin.settings.account')->with('status', 'account-updated');
     }
 }

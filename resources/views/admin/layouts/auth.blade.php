@@ -25,18 +25,18 @@
                         </div>
                     </div>
                 </li>
-                <x-aside.link :href="route('get.pages')">
+                <x-aside.link :href="route('admin.get.pages')">
                     <x-tabler-home />
                     Pages
                 </x-aside.link>
-                <x-aside.link :href="route('settings.account')" :active="request()->routeIs('settings.*')">
+                <x-aside.link :href="route('admin.settings.account')" :active="request()->routeIs('admin.settings.*')">
                     <x-tabler-settings />
                     Settings
                 </x-aside.link>
                 <x-separator />
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
-                    <x-aside.link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                    <x-aside.link :href="route('admin.logout')" onclick="event.preventDefault(); this.closest('form').submit();">
                         <x-tabler-logout />
                         {{ __('Log Out') }}
                     </x-aside.link>

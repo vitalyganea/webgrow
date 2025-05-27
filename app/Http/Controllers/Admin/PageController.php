@@ -29,7 +29,7 @@ class PageController extends Controller
 
         Page::create($data);
 
-        return redirect()->route('get.pages')->with('success', 'Page created.');
+        return redirect()->route('admin.get.pages')->with('success', 'Page created.');
     }
 
     public function edit(Page $page)
@@ -47,12 +47,12 @@ class PageController extends Controller
 
         $page->update($data);
 
-        return redirect()->route('get.pages')->with('success', 'Page updated.');
+        return redirect()->route('admin.get.pages')->with('success', 'Page updated.');
     }
 
     public function destroy(Page $page)
     {
         $page->delete();
-        return redirect()->route('get.pages')->with('success', 'Page deleted.');
+        return redirect()->route('admin.get.pages')->with('success', 'Page deleted.');
     }
 }
