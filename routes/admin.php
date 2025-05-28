@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\LanguageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AccountController;
 use App\Http\Controllers\Admin\Auth\DangerController;
@@ -67,5 +68,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('pages/{page}/edit', [PageController::class, 'edit'])->name('edit.page');
         Route::put('pages/{page}', [PageController::class, 'update'])->name('update.page');
         Route::delete('pages/{page}', [PageController::class, 'destroy'])->name('delete.page');
+
+        Route::get('languages', [LanguageController::class, 'index'])->name('get.languages');
+        Route::get('languages/create', [LanguageController::class, 'create'])->name('create.language');
+        Route::post('languages', [LanguageController::class, 'store'])->name('languages.store');
+        Route::get('languages/{language}/edit', [LanguageController::class, 'edit'])->name('edit.language');
+        Route::put('languages/{language}', [LanguageController::class, 'update'])->name('update.language');
+        Route::delete('languages/{language}', [LanguageController::class, 'destroy'])->name('delete.language');
     });
 });

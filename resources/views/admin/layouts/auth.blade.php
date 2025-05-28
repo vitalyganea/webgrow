@@ -29,6 +29,10 @@
                     <x-tabler-home />
                     Pages
                 </x-aside.link>
+                <x-aside.link :href="route('admin.get.languages')">
+                    <x-tabler-language />
+                    Languages
+                </x-aside.link>
                 <x-aside.link :href="route('admin.settings.account')" :active="request()->routeIs('admin.settings.*')">
                     <x-tabler-settings />
                     Settings

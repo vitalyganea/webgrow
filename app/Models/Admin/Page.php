@@ -15,4 +15,10 @@ class Page extends Model
         'content',
     ];
 
+
+    public function contents()
+    {
+        return $this->hasMany(PageContent::class)->orderBy('order');
+    }
+
 }
