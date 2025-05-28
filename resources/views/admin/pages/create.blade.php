@@ -25,13 +25,6 @@
                         <x-input-error class="mt-2" :messages="$errors->get('slug')" />
                     </div>
 
-                    <div class="mt-6">
-                        <x-label for="content" value="Content" />
-                        <textarea name="content" id="content" rows="6"
-                                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('content') }}</textarea>
-                        <x-input-error class="mt-2" :messages="$errors->get('content')" />
-                    </div>
-
                     <div class="mt-6 flex items-center gap-4">
                         <x-button>Create Page</x-button>
                         <x-action-message status="page-created" />

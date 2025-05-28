@@ -1,185 +1,81 @@
 <x-auth-layout title="Edit Page">
-    <x-slot:header>Edit Page</x-slot:header>
+    <x-slot:header>
+        Edit Page
+    </x-slot:header>
 
     <x-card>
         <x-slot:header>
             <x-slot:title>Page Information</x-slot:title>
-            <x-slot:description>Update the page title, slug, and content.</x-slot:description>
+            <x-slot:description>Edit the page title, slug, and content for each language.</x-slot:description>
         </x-slot:header>
 
         <x-slot:content>
-            <form method="POST" action="{{ route('admin.update.page', $page) }}" enctype="multipart/form-data" novalidate>
-                @csrf
-                @method('PUT')
-
-                {{-- Title --}}
-                <div>
-                    <x-label for="title" value="Title" />
-                    <x-input id="title" name="title" type="text" class="mt-1 block w-full"
-                             value="{{ old('title', $page->title) }}" required autofocus />
-                    <x-input-error class="mt-2" :messages="$errors->get('title')" />
-                </div>
-
-                {{-- Slug --}}
-                <div class="mt-6">
-                    <x-label for="slug" value="Slug (URL)" />
-                    <x-input id="slug" name="slug" type="text" class="mt-1 block w-full"
-                             value="{{ old('slug', $page->slug) }}" required />
-                    <x-input-error class="mt-2" :messages="$errors->get('slug')" />
-                </div>
-
-                {{-- Content Blocks --}}
-                <div class="mt-6">
-                    <label class="block font-semibold mb-2">Page Content Blocks</label>
-                    <div id="content-blocks" class="space-y-4 p-4 border rounded bg-gray-50 max-h-[500px] overflow-auto">
-                        @php
-                            $oldContents = old('contents', $page->contents ?? []);
-                        @endphp
-
-                        @foreach($oldContents as $index => $block)
-                            @php
-                                $type = is_array($block) ? $block['type'] : $block->type;
-                                $contentValue = is_array($block) ? ($block['content'] ?? '') : $block->content;
-                                $blockId = is_array($block) ? ($block['id'] ?? null) : $block->id;
-                            @endphp
-
-                            <div class="bg-white border rounded p-4 relative" data-index="{{ $index }}">
-                                <input type="hidden" name="contents[{{ $index }}][id]" value="{{ $blockId }}">
-                                <input type="hidden" name="contents[{{ $index }}][type]" value="{{ $type }}">
-
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-semibold text-gray-700">{{ ucfirst($type) }} Block</span>
-                                    <button type="button" class="text-red-600 hover:underline remove-block" title="Remove block">&times;</button>
-                                </div>
-
-                                @if($type === 'title')
-                                    <input type="text" name="contents[{{ $index }}][content]"
-                                           class="w-full rounded border-gray-300 p-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                           value="{{ $contentValue }}" required />
-                                @elseif($type === 'text')
-                                    <textarea name="contents[{{ $index }}][content]" rows="4"
-                                              class="w-full rounded border-gray-300 p-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                              required>{{ $contentValue }}</textarea>
-                                @elseif($type === 'image')
-                                    <div>
-                                        <input type="file" name="contents[{{ $index }}][image_file]" accept="image/*"
-                                               class="w-full rounded border-gray-300 p-2" />
-                                        @if($contentValue)
-                                            <input type="hidden" name="contents[{{ $index }}][content]" value="{{ $contentValue }}" />
-                                            <img src="{{ asset('storage/' . $contentValue) }}" alt="Image preview"
-                                                 class="mt-3 max-h-40 rounded shadow-sm object-contain" />
-                                        @endif
-                                    </div>
-                                @endif
-                            </div>
+            @if ($languages->isEmpty())
+                <p class="text-red-500">No languages available. Please configure languages to edit pages.</p>
+            @else
+                <div x-data="{ tab: '{{ $languages->first()->code ?? '' }}' }" x-cloak class="space-y-6">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-200">
+                        @foreach ($languages as $language)
+                            <button
+                                @click="tab = '{{ $language->code }}'"
+                                :class="tab === '{{ $language->code }}' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'"
+                                class="px-4 py-2 focus:outline-none"
+                            >
+                                {{ strtoupper($language->code) }}
+                            </button>
                         @endforeach
                     </div>
 
-                    <button type="button" id="add-block-btn"
-                            class="mt-4 inline-block px-5 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition">
-                        + Add Content Block
-                    </button>
-                </div>
+                    <!-- Tab contents -->
+                    <form method="POST" action="{{ route('admin.update.page', $group_id) }}">
+                        @csrf
+                        @method('PUT')
 
-                {{-- Submit --}}
-                <div class="mt-8 flex items-center gap-4">
-                    <x-button>Update Page</x-button>
-                    <x-action-message status="page-updated" />
-                </div>
-            </form>
+                        @foreach ($languages as $language)
+                            @php
+                                $page = $pages[$language->code] ?? null;
+                            @endphp
 
-            {{-- Modal --}}
-            <div id="block-type-modal"
-                 class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
-                <div class="bg-white rounded-lg p-6 w-72 shadow-lg">
-                    <h3 class="text-lg font-bold mb-4 text-center">Select Content Block Type</h3>
-                    <div class="space-y-3">
-                        <button data-type="title"
-                                class="w-full py-2 rounded border border-gray-300 hover:bg-gray-100 transition">Title</button>
-                        <button data-type="text"
-                                class="w-full py-2 rounded border border-gray-300 hover:bg-gray-100 transition">Text</button>
-                        <button data-type="image"
-                                class="w-full py-2 rounded border border-gray-300 hover:bg-gray-100 transition">Image</button>
-                        <button id="close-modal"
-                                class="w-full mt-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition">Cancel</button>
-                    </div>
-                </div>
-            </div>
+                            <div x-show="tab === '{{ $language->code }}'" class="space-y-6">
+                                <h3 class="text-lg font-semibold">{{ strtoupper($language->code) }} Content</h3>
 
-            {{-- JS --}}
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    const addBlockBtn = document.getElementById('add-block-btn');
-                    const contentBlocks = document.getElementById('content-blocks');
-                    const modal = document.getElementById('block-type-modal');
-                    const closeModalBtn = document.getElementById('close-modal');
+                                <input type="hidden" name="pages[{{ $language->code }}][language_code]" value="{{ $language->code }}">
 
-                    // Use highest existing index + 1 for new blocks to avoid duplicates
-                    let blockIndex = (() => {
-                        const indexes = Array.from(contentBlocks.children)
-                            .map(div => parseInt(div.dataset.index))
-                            .filter(n => !isNaN(n));
-                        return indexes.length ? Math.max(...indexes) + 1 : 0;
-                    })();
+                                <div>
+                                    <x-label for="title_{{ $language->code }}" value="Title" />
+                                    <x-input
+                                        class="mt-1 block w-full"
+                                        id="title_{{ $language->code }}"
+                                        name="pages[{{ $language->code }}][title]"
+                                        type="text"
+                                        value="{{ old('pages.' . $language->code . '.title', $page?->title) }}"
+                                        required
+                                    />
+                                    <x-input-error class="mt-2" :messages="$errors->get('pages.' . $language->code . '.title')" />
+                                </div>
 
-                    // Create content block HTML by type
-                    function createContentBlock(type) {
-                        const container = document.createElement('div');
-                        container.className = 'bg-white border rounded p-4 relative';
-                        container.dataset.index = blockIndex;
-
-                        container.innerHTML = `
-                            <input type="hidden" name="contents[${blockIndex}][type]" value="${type}">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-semibold text-gray-700">${type.charAt(0).toUpperCase() + type.slice(1)} Block</span>
-                                <button type="button" class="text-red-600 hover:underline remove-block" title="Remove block">&times;</button>
+                                <div class="mt-6">
+                                    <x-label for="slug_{{ $language->code }}" value="Slug (URL)" />
+                                    <x-input
+                                        class="mt-1 block w-full"
+                                        id="slug_{{ $language->code }}"
+                                        name="pages[{{ $language->code }}][slug]"
+                                        type="text"
+                                        value="{{ old('pages.' . $language->code . '.slug', $page?->slug) }}"
+                                        required
+                                    />
+                                    <x-input-error class="mt-2" :messages="$errors->get('pages.' . $language->code . '.slug')" />
+                                </div>
                             </div>
-                            ${
-                            type === 'title' ?
-                                `<input type="text" name="contents[${blockIndex}][content]"
-                                        class="w-full rounded border-gray-300 p-2 focus:ring-indigo-500 focus:border-indigo-500" required>` :
-                                type === 'text' ?
-                                    `<textarea name="contents[${blockIndex}][content]" rows="4"
-                                           class="w-full rounded border-gray-300 p-2 focus:ring-indigo-500 focus:border-indigo-500" required></textarea>` :
-                                    type === 'image' ?
-                                        `<input type="file" name="contents[${blockIndex}][image_file]" accept="image/*"
-                                        class="w-full rounded border-gray-300 p-2">` : ''
-                        }
-                        `;
-                        contentBlocks.appendChild(container);
-                        blockIndex++;
-                    }
+                        @endforeach
 
-                    // Show modal on add button click
-                    addBlockBtn.addEventListener('click', () => {
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                    });
-
-                    // Close modal
-                    closeModalBtn.addEventListener('click', () => {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    });
-
-                    // Block type buttons
-                    modal.querySelectorAll('button[data-type]').forEach(button => {
-                        button.addEventListener('click', () => {
-                            const type = button.getAttribute('data-type');
-                            createContentBlock(type);
-                            modal.classList.add('hidden');
-                            modal.classList.remove('flex');
-                        });
-                    });
-
-                    // Delegate remove block clicks
-                    contentBlocks.addEventListener('click', e => {
-                        if (e.target.classList.contains('remove-block')) {
-                            e.target.closest('div[data-index]').remove();
-                        }
-                    });
-                });
-            </script>
+                        <div class="mt-6 flex items-center gap-4">
+                            <x-button>Save Changes</x-button>
+                        </div>
+                    </form>
+                </div>
+            @endif
         </x-slot:content>
     </x-card>
 </x-auth-layout>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Language;
+use App\Models\Admin\Page;
 use Illuminate\Http\Request;
 
 class LanguageController extends Controller
@@ -65,8 +66,12 @@ class LanguageController extends Controller
 
     public function destroy(Language $language)
     {
+        Page::where('language', $language->code)->each(function ($page) {
+            $page->delete();
+        });
         $language->delete();
-        return redirect()->route('admin.get.languages')->with('success', 'Language deleted successfully.');
+
+        return redirect()->route('admin.get.languages')->with('success', 'Language and its pages deleted successfully.');
     }
 }
 

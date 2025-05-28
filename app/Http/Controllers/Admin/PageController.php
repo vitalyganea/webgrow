@@ -3,15 +3,43 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\Language;
 use App\Models\Admin\Page;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
     public function index()
     {
-        $pages = Page::latest()->paginate(10);
-        return view('admin.pages.index', compact('pages'));
+        // Step 1: Paginate unique group_ids
+        $groupIds = Page::select('group_id')
+            ->groupBy('group_id')
+            ->latest(\DB::raw('MIN(id)')) // order by first created
+            ->paginate(10);
+
+        // Step 2: Fetch all pages for these group_ids
+        $pages = Page::whereIn('group_id', $groupIds->pluck('group_id'))
+            ->where('language', Language::first()->code) // use 'en' or your default language
+            ->get()
+            ->keyBy('group_id');
+
+        // Step 3: Inject default language page into paginated object
+        $paginatedPages = $groupIds->map(function ($group) use ($pages) {
+            return $pages[$group->group_id] ?? null;
+        })->filter();
+
+        // Step 4: Create new paginator
+        $finalPages = new \Illuminate\Pagination\LengthAwarePaginator(
+            $paginatedPages,
+            $groupIds->total(),
+            $groupIds->perPage(),
+            $groupIds->currentPage(),
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view('admin.pages.index', ['pages' => $finalPages]);
     }
 
     public function create()
@@ -27,80 +55,76 @@ class PageController extends Controller
             'content' => 'nullable|string',
         ]);
 
-        Page::create($data);
+        $originalSlug = $data['slug'];
+        $groupId = (string) Str::uuid(); // ✅ Called only ONCE
+
+        Language::get()->each(function ($language) use ($data, $originalSlug, $groupId) {
+            $data['slug'] = $originalSlug . '_' . $language->code;
+            $data['language'] = $language->code;
+            $data['group_id'] = $groupId; // ✅ Same for all
+            Page::create($data);
+        });
 
         return redirect()->route('admin.get.pages')->with('success', 'Page created.');
     }
 
-    public function edit(Page $page)
+    public function edit($group_id)
     {
-        $contents = $page->contents;
-        return view('admin.pages.edit', compact('page', 'contents'));
-    }
+        $pages = Page::where('group_id', $group_id)
+            ->get()
+            ->keyBy('language');
 
-    public function update(Request $request, Page $page)
-    {
-        // Validate
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:pages,slug,' . $page->id,
-            'contents' => 'array',
-            'contents.*.type' => 'required|string|in:title,text,image',
-            'contents.*.content' => 'nullable|string',
-            'contents.*.image_file' => 'nullable|file|image|max:2048',
-        ]);
+        $languages = Language::all();
 
-        // Update page info
-        $page->update([
-            'title' => $request->input('title'),
-            'slug' => $request->input('slug'),
-        ]);
-
-        $submittedContents = $request->input('contents', []);
-        $submittedFiles = $request->file('contents', []);
-
-        $existingContentIds = [];
-
-        foreach ($submittedContents as $index => $block) {
-            $type = $block['type'];
-            $id = $block['id'] ?? null;
-            $contentData = null;
-
-            if ($type === 'image') {
-                if (isset($submittedFiles[$index]['image_file'])) {
-                    $path = $submittedFiles[$index]['image_file']->store('page_contents', 'public');
-                    $contentData = $path;
-                } else {
-                    $contentData = $block['content'] ?? null; // keep existing path
-                }
-            } else {
-                $contentData = $block['content'] ?? null;
-            }
-
-            if ($id) {
-                // Update existing
-                $content = $page->contents()->where('id', $id)->first();
-                if ($content) {
-                    $content->update([
-                        'type' => $type,
-                        'content' => $contentData,
-                    ]);
-                    $existingContentIds[] = $content->id;
-                }
-            } else {
-                // Create new
-                $new = $page->contents()->create([
-                    'type' => $type,
-                    'content' => $contentData,
-                ]);
-                $existingContentIds[] = $new->id;
-            }
+        if ($pages->isEmpty()) {
+            return redirect()->route('admin.get.pages')->with('error', 'Page not found.');
         }
 
-        // Delete removed blocks
-        $page->contents()->whereNotIn('id', $existingContentIds)->delete();
+        return view('admin.pages.edit', compact('pages', 'languages', 'group_id'));
+    }
 
-        return redirect()->route('admin.edit.page', $page)->with('page-updated', 'Page updated successfully!');
+    public function update(Request $request, $group_id)
+    {
+        $data = $request->validate([
+            'pages.*.title' => 'required|string|max:255',
+            'pages.*.slug' => 'required|string|max:255',
+            'pages.*.content' => 'nullable|string',
+            'pages.*.language_code' => 'required|string|exists:languages,code',
+        ]);
+
+        // Fetch existing pages for the group_id
+        $existingPages = Page::where('group_id', $group_id)->get()->keyBy('language');
+
+        // Update or create pages for each language
+        foreach ($data['pages'] as $languageCode => $pageData) {
+            $page = $existingPages[$languageCode] ?? null;
+
+            // Ensure slug uniqueness (except for the current page)
+            $slugCount = Page::where('slug', $pageData['slug'])
+                ->where('group_id', '!=', $group_id)
+                ->count();
+
+            if ($slugCount > 0) {
+                return back()->withErrors(['pages.' . $languageCode . '.slug' => 'The slug must be unique.'])->withInput();
+            }
+
+            if ($page) {
+                // Update existing page
+                $page->update([
+                    'title' => $pageData['title'],
+                    'slug' => $pageData['slug'],
+                ]);
+            } else {
+                // Create new page if it doesn't exist (e.g., new language added)
+                Page::create([
+                    'title' => $pageData['title'],
+                    'slug' => $pageData['slug'],
+                    'language' => $languageCode,
+                    'group_id' => $group_id,
+                ]);
+            }
+        }
+        return redirect()->route('admin.get.pages')->with('success', 'Page updated.');
     }
 
 

@@ -65,9 +65,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('pages', [PageController::class, 'index'])->name('get.pages');
         Route::get('pages/create', [PageController::class, 'create'])->name('create.page');
         Route::post('pages', [PageController::class, 'store'])->name('store.page');
-        Route::get('pages/{page}/edit', [PageController::class, 'edit'])->name('edit.page');
-        Route::put('pages/{page}', [PageController::class, 'update'])->name('update.page');
-        Route::delete('pages/{page}', [PageController::class, 'destroy'])->name('delete.page');
+
+        // Use group_id for edit, update, delete
+        Route::get('pages/{group_id}/edit', [PageController::class, 'edit'])->name('edit.page');
+        Route::put('pages/{group_id}', [PageController::class, 'update'])->name('update.page');
+        Route::delete('pages/{group_id}', [PageController::class, 'destroy'])->name('delete.page');
+
 
         Route::get('languages', [LanguageController::class, 'index'])->name('get.languages');
         Route::get('languages/create', [LanguageController::class, 'create'])->name('create.language');
@@ -75,5 +78,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('languages/{language}/edit', [LanguageController::class, 'edit'])->name('edit.language');
         Route::put('languages/{language}', [LanguageController::class, 'update'])->name('update.language');
         Route::delete('languages/{language}', [LanguageController::class, 'destroy'])->name('delete.language');
+
+
     });
 });
