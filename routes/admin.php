@@ -72,6 +72,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('pages/{group_id}', [PageController::class, 'destroy'])->name('delete.page');
 
 
+        Route::get('page/edit-html', [PageController::class, 'editHtml'])->name('admin.editHtml');
+        Route::post('page/update-html', [PageController::class, 'updateHtml'])->name('admin.updateHtml');
+
+
         Route::get('languages', [LanguageController::class, 'index'])->name('get.languages');
         Route::get('languages/create', [LanguageController::class, 'create'])->name('create.language');
         Route::post('languages', [LanguageController::class, 'store'])->name('languages.store');

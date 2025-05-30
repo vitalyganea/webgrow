@@ -128,10 +128,34 @@ class PageController extends Controller
     }
 
 
-
     public function destroy(Page $page)
     {
         $page->delete();
         return redirect()->route('admin.get.pages')->with('success', 'Page deleted.');
+    }
+
+    public function editHtml()
+    {
+        $filePath = public_path('custom/index.html');
+
+        if (!File::exists($filePath)) {
+            File::put($filePath, '<!-- Start editing your page here -->');
+        }
+
+        $htmlContent = File::get($filePath);
+
+        return view('admin.edit-html', compact('htmlContent'));
+    }
+
+    public function updateHtml(Request $request)
+    {
+        $request->validate([
+            'html_content' => 'required|string',
+        ]);
+
+        $filePath = public_path('custom/index.html');
+        File::put($filePath, $request->input('html_content'));
+
+        return redirect()->route('admin.editHtml')->with('success', 'HTML updated successfully.');
     }
 }

@@ -59,6 +59,7 @@ class LanguageController extends Controller
         $language->update([
             'name' => $request->name,
             'main' => $request->has('main') ? 1 : null,
+            'code' => $request->code
         ]);
 
         return redirect()->route('admin.get.languages')->with('success', 'Language updated successfully.');
@@ -66,9 +67,20 @@ class LanguageController extends Controller
 
     public function destroy(Language $language)
     {
+        // Count total languages
+        $totalLanguages = Language::count();
+
+        // Prevent deletion if only one remains
+        if ($totalLanguages <= 1) {
+            return redirect()->route('admin.get.languages')->with('error', 'You cannot delete the last remaining language.');
+        }
+
+        // Delete all pages for the language
         Page::where('language', $language->code)->each(function ($page) {
             $page->delete();
         });
+
+        // Delete the language itself
         $language->delete();
 
         return redirect()->route('admin.get.languages')->with('success', 'Language and its pages deleted successfully.');
