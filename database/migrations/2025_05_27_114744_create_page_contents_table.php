@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('page_contents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('page_id')->constrained()->onDelete('cascade');
-            $table->string('type'); // e.g. 'title', 'image', 'text'
+            $table->string('block_name');
+            $table->string('language_code');
             $table->text('content')->nullable(); // stores text or image path
             $table->integer('order')->default(0); // order of blocks on page
             $table->timestamps();

@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\Auth\NewPasswordController;
 use App\Http\Controllers\Admin\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\Auth\RegisteredUserController;
 use App\Http\Controllers\Admin\Auth\VerifyEmailController;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Response;
 
 Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -83,6 +85,42 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('languages/{language}', [LanguageController::class, 'update'])->name('update.language');
         Route::delete('languages/{language}', [LanguageController::class, 'destroy'])->name('delete.language');
 
+        Route::get('blocks/{folder}', function ($folder) {
+            $basePath = public_path("custom/{$folder}");
+
+            if (!File::exists($basePath)) {
+                return Response::json(['blocks' => [], 'css_files' => []]);
+            }
+
+            // HTML block files
+            $files = File::files($basePath);
+            $blocks = collect($files)
+                ->filter(fn($f) => $f->getExtension() === 'html')
+                ->map(fn($f) => [
+                    'name' => $f->getFilename(),
+                    'content' => File::get($f->getPathname()),
+                ])->values();
+
+            // CSS files
+            $cssDir = $basePath . '/css';
+            $cssFiles = [];
+            if (File::exists($cssDir)) {
+                $cssFiles = collect(File::files($cssDir))
+                    ->filter(fn($f) => $f->getExtension() === 'css')
+                    ->map(function ($f) {
+                        $relativePath = str_replace(public_path(), '', $f->getPathname());
+                        $relativePath = ltrim($relativePath, DIRECTORY_SEPARATOR);
+                        return asset($relativePath);
+                    })
+                    ->values()
+                    ->toArray();
+            }
+
+            return Response::json([
+                'blocks' => $blocks,
+                'css_files' => $cssFiles,
+            ]);
+        });
 
     });
 });

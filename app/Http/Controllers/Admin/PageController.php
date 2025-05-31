@@ -88,18 +88,18 @@ class PageController extends Controller
         $data = $request->validate([
             'pages.*.title' => 'required|string|max:255',
             'pages.*.slug' => 'required|string|max:255',
-            'pages.*.content' => 'nullable|string',
             'pages.*.language_code' => 'required|string|exists:languages,code',
+            'pages.*.blocks' => 'nullable|array', // adaugă validare pentru blocks
+            'pages.*.blocks.*' => 'nullable|string', // fiecare block e text html
         ]);
 
         // Fetch existing pages for the group_id
         $existingPages = Page::where('group_id', $group_id)->get()->keyBy('language');
 
-        // Update or create pages for each language
         foreach ($data['pages'] as $languageCode => $pageData) {
             $page = $existingPages[$languageCode] ?? null;
 
-            // Ensure slug uniqueness (except for the current page)
+            // Verifică unicitatea slug-ului, ignorând pagina curentă
             $slugCount = Page::where('slug', $pageData['slug'])
                 ->where('group_id', '!=', $group_id)
                 ->count();
@@ -109,21 +109,43 @@ class PageController extends Controller
             }
 
             if ($page) {
-                // Update existing page
                 $page->update([
                     'title' => $pageData['title'],
                     'slug' => $pageData['slug'],
                 ]);
             } else {
-                // Create new page if it doesn't exist (e.g., new language added)
-                Page::create([
+                $page = Page::create([
                     'title' => $pageData['title'],
                     'slug' => $pageData['slug'],
                     'language' => $languageCode,
                     'group_id' => $group_id,
                 ]);
             }
+
+            // Salvează conținutul blocurilor
+            if (!empty($pageData['blocks']) && is_array($pageData['blocks'])) {
+                foreach ($pageData['blocks'] as $blockName => $blockContent) {
+                    $pageContent = $page->contents()
+                        ->where('block_name', $blockName)
+                        ->where('language_code', $languageCode)
+                        ->first();
+
+                    if ($pageContent) {
+                        $pageContent->update([
+                            'content' => $blockContent,
+                        ]);
+                    } else {
+                        $page->contents()->create([
+                            'block_name' => $blockName,
+                            'language_code' => $languageCode,
+                            'content' => $blockContent,
+                            'order' => 0, // opțional, setează după necesitate
+                        ]);
+                    }
+                }
+            }
         }
+
         return redirect()->route('admin.get.pages')->with('success', 'Page updated.');
     }
 
