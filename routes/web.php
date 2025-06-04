@@ -1,13 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\Auth\AccountController;
-use App\Http\Controllers\Admin\Auth\DangerController;
-use App\Http\Controllers\Admin\Auth\SecurityController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\PageController;
-use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\SeriesController;
+use App\Http\Controllers\Public\ArticleController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\SeriesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');

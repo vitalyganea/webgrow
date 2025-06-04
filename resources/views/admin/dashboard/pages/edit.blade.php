@@ -110,7 +110,7 @@
         const defaultLang = @json($defaultLang);
 
         let currentLang = defaultLang;
-        let globalCssFiles = '/custom/home/css/style.css';
+        let globalCssFiles = '/custom/home/assets/css/main.css';
 
         function showLangSection(langCode) {
             document.querySelectorAll('.lang-section').forEach(section => {
@@ -149,11 +149,11 @@
                             data.blocks.forEach((block, i) => {
                                 tinymce.init({
                                     selector: `#editor_${lang.code}_${i}`,
-                                    height: 300,
-                                    menubar: true,
-                                    plugins: 'fullscreen lists link image table code',
-                                    toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
+                                    plugins: 'fullscreen link image code lists autoresize',
+                                    toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
+                                    // Remove fixed height
                                     content_css: globalCssFiles,
+                                    autoresize_bottom_margin: 10,
                                     setup: editor => {
                                         editor.on('change', () => editor.save());
                                     }
@@ -170,10 +170,11 @@
         function initStaticEditors() {
             tinymce.init({
                 selector: 'textarea.tinymce-editor',
-                plugins: 'link image code lists',
-                toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
-                height: 300,
-                content_css: globalCssFiles
+                plugins: 'fullscreen link image code lists autoresize',
+                toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
+                // Remove fixed height
+                content_css: globalCssFiles,
+                autoresize_bottom_margin: 10
             });
         }
 
