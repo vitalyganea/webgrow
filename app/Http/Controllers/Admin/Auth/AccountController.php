@@ -15,7 +15,7 @@ class AccountController extends Controller
     public function index(Request $request): View
     {
 
-        return view('admin.account.index', [
+        return view('admin.dashboard.account.index', [
             'user' => AuthenticatedUserResource::make($request->user()),
         ]);
     }

@@ -12,7 +12,7 @@ class DangerController extends Controller
 {
     public function index(): View
     {
-        return view('admin.danger.index');
+        return view('admin.dashboard.danger.index');
     }
 
     public function delete(Request $request): RedirectResponse

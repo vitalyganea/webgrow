@@ -12,12 +12,12 @@ class LanguageController extends Controller
     public function index()
     {
         $languages = Language::paginate(10);
-        return view('admin.language.index', compact('languages'));
+        return view('admin.dashboard.language.index', compact('languages'));
     }
 
     public function create()
     {
-        return view('admin.language.create');
+        return view('admin.dashboard.language.create');
     }
 
     public function store(Request $request)
@@ -43,7 +43,7 @@ class LanguageController extends Controller
 
     public function edit(Language $language)
     {
-        return view('admin.language.edit', compact('language'));
+        return view('admin.dashboard.language.edit', compact('language'));
     }
 
     public function update(Request $request, Language $language)

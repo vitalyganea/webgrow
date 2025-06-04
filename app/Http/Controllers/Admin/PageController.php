@@ -39,12 +39,12 @@ class PageController extends Controller
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
-        return view('admin.pages.index', ['pages' => $finalPages]);
+        return view('admin.dashboard.pages.index', ['pages' => $finalPages]);
     }
 
     public function create()
     {
-        return view('admin.pages.create');
+        return view('admin.dashboard.pages.create');
     }
 
     public function store(Request $request)
@@ -70,17 +70,32 @@ class PageController extends Controller
 
     public function edit($group_id)
     {
+
+
+        // Retrieve all pages for the given group_id, keyed by language code
         $pages = Page::where('group_id', $group_id)
+            ->with('contents') // Eager load related contents
             ->get()
             ->keyBy('language');
 
+        // Retrieve all available languages
         $languages = Language::all();
 
+        // Redirect if no pages are found
         if ($pages->isEmpty()) {
             return redirect()->route('admin.get.pages')->with('error', 'Page not found.');
         }
 
-        return view('admin.pages.edit', compact('pages', 'languages', 'group_id'));
+        // Prepare block contents per language and block name
+        $blockContents = [];
+
+        foreach ($pages as $langCode => $page) {
+            foreach ($page->contents as $content) {
+                $blockContents[$langCode][$content->block_name] = $content->content;
+            }
+        }
+
+        return view('admin.dashboard.pages.edit', compact('pages', 'languages', 'group_id', 'blockContents'));
     }
 
     public function update(Request $request, $group_id)

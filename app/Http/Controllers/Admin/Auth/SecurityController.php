@@ -13,7 +13,7 @@ class SecurityController extends Controller
 {
     public function index(): View
     {
-        return view('admin.security.index');
+        return view('admin.dashboard.security.index');
     }
 
     public function update(Request $request): RedirectResponse

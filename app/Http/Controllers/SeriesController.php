@@ -8,6 +8,6 @@ class SeriesController extends Controller
 {
     public function __invoke(Request $request)
     {
-        return view('series.index');
+        return view('public.series.index');
     }
 }
