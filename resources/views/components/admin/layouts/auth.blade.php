@@ -30,6 +30,10 @@
                     <x-tabler-language />
                     Languages
                 </x-admin.aside.link>
+                <x-admin.aside.link :href="route('admin.get.seo-tags')">
+                    <x-tabler-seo />
+                    Seo Tags
+                </x-admin.aside.link>
                 <x-admin.aside.link :href="route('admin.settings.account')" :active="request()->routeIs('admin.settings.*')">
                     <x-tabler-settings />
                     Settings

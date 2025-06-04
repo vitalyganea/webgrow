@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\SeoTagController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AccountController;
 use App\Http\Controllers\Admin\Auth\DangerController;
@@ -84,6 +85,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('languages/{language}/edit', [LanguageController::class, 'edit'])->name('edit.language');
         Route::put('languages/{language}', [LanguageController::class, 'update'])->name('update.language');
         Route::delete('languages/{language}', [LanguageController::class, 'destroy'])->name('delete.language');
+
+        Route::get('seo-tags', [SeoTagController::class, 'index'])->name('get.seo-tags');
+        Route::get('seo-tags/create', [SeoTagController::class, 'create'])->name('create.seo-tag');
+        Route::post('seo-tags/store', [SeoTagController::class, 'store'])->name('store.seo-tag');
+        Route::get('seo-tags/{seoTag}/edit', [SeoTagController::class, 'edit'])->name('edit.seo-tag');
+        Route::put('seo-tags/{seoTag}', [SeoTagController::class, 'update'])->name('update.seo-tag');
+        Route::delete('seo-tags/{seoTag}', [SeoTagController::class, 'destroy'])->name('delete.seo-tag');
+
+
 
         Route::get('blocks/{folder}', function ($folder) {
             $basePath = public_path("custom/{$folder}");
