@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar'
     ];
 
     /**
@@ -45,7 +46,7 @@ class User extends Authenticatable
 
     public function avatar($size = '150'): string
     {
-        return 'https://www.gravatar.com/avatar/' . md5($this->email) . '?s=' . $size . '&d=mm';
+        return $this->avatar ?? 'https://www.gravatar.com/avatar/' . md5($this->email) . '?s=' . $size . '&d=mm';
     }
 
     public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo

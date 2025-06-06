@@ -3,8 +3,9 @@
         All Pages
     </x-slot:header>
 
-    <div class="mb-4 text-right">
-        <a href="{{ route('admin.create.page') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+    <div class="mb-4 text-right mt-2">
+        <a href="{{ route('admin.create.page') }}"
+           class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/80 focus-visible:bg-primary/90">
             + New Page
         </a>
     </div>
@@ -27,10 +28,10 @@
                         {{-- Pass group_id for editing all translations --}}
                         <a href="{{ route('admin.edit.page', ['group_id' => $page->group_id]) }}" class="text-blue-600 hover:underline">Edit</a>
 
-                        <form action="{{ route('admin.delete.page', ['group_id' => $page->group_id]) }}" method="POST" class="inline">
+                        <form action="{{ route('admin.delete.page', ['group_id' => $page->group_id]) }}" method="POST" class="inline delete-form">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" onclick="return confirm('Are you sure you want to delete all translations of this page?')" class="text-red-600 hover:underline">
+                            <button type="button" class="text-red-600 hover:underline delete-btn">
                                 Delete
                             </button>
                         </form>
@@ -48,4 +49,32 @@
     <div class="mt-4">
         {{ $pages->links() }}
     </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const form = this.closest('form');
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You want to delete all translations of this page!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete all!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </x-admin.layouts.auth>

@@ -6,10 +6,10 @@
         <x-admin.card>
             <x-slot:header>
                 <x-slot:title>Account Information</x-slot:title>
-                <x-slot:description>Update your account's accout information and email address.</x-slot:description>
+                <x-slot:description>Update your account's information, email address, and avatar.</x-slot:description>
             </x-slot:header>
             <x-slot:content>
-                <form method="post" action="{{ route('admin.settings.account') }}">
+                <form method="post" action="{{ route('admin.settings.account') }}" enctype="multipart/form-data">
                     @csrf
                     @method('patch')
                     <div>
@@ -36,6 +36,20 @@
 
                                 <x-admin.action-message status="verification-link-sent" :message="__('A new verification link has been sent to your email address.')" />
                             </div>
+                        @endif
+                    </div>
+
+                    <div class="mt-6">
+                        <x-admin.label for="avatar" :value="__('Avatar')" />
+                        <input class="mt-1 block w-full" id="avatar" name="avatar" type="file" accept="image/*" />
+                        <x-admin.input-error class="mt-2" :messages="$errors->get('avatar')" />
+                        @if ($user->avatar)
+                            <div class="mt-2">
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="Current Avatar" class="h-20 w-20 rounded-full object-cover" />
+                                <p class="text-sm text-gray-600">{{ __('Current avatar') }}</p>
+                            </div>
+                        @else
+                            <p class="mt-2 text-sm text-gray-600">{{ __('No avatar uploaded') }}</p>
                         @endif
                     </div>
 
