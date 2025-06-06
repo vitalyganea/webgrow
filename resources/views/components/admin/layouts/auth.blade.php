@@ -22,31 +22,38 @@
                         </div>
                     </div>
                 </li>
+
                 <x-admin.aside.link :href="route('admin.get.pages')">
-                    <x-tabler-home />
+                    <i class="fas fa-file-alt mr-2"></i>
                     Pages
                 </x-admin.aside.link>
+
                 <x-admin.aside.link :href="route('admin.get.languages')">
-                    <x-tabler-language />
+                    <i class="fas fa-language mr-2"></i>
                     Languages
                 </x-admin.aside.link>
+
                 <x-admin.aside.link :href="route('admin.get.seo-tags')">
-                    <x-tabler-seo />
+                    <i class="fas fa-tags mr-2"></i>
                     Seo Tags
                 </x-admin.aside.link>
+
                 <x-admin.aside.link :href="route('admin.settings.account')" :active="request()->routeIs('admin.settings.*')">
-                    <x-tabler-settings />
+                    <i class="fas fa-cog mr-2"></i>
                     Settings
                 </x-admin.aside.link>
+
                 <x-admin.separator />
+
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <x-admin.aside.link :href="route('admin.logout')" onclick="event.preventDefault(); this.closest('form').submit();">
-                        <x-tabler-logout />
+                        <i class="fas fa-sign-out-alt mr-2"></i>
                         {{ __('Log Out') }}
                     </x-admin.aside.link>
                 </form>
             </x-admin.aside>
+
             <main class="w-full">
                 @isset($header)
                     <header class="flex items-center justify-between border-b bg-card px-6 py-4 sm:px-8 sm:py-6">

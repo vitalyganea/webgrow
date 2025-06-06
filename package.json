@@ -19,6 +19,7 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
-        "alpinejs": "^3.13.1"
+        "alpinejs": "^3.13.1",
+        "tw-merge": "^0.0.1-alpha.3"
     }
 }
