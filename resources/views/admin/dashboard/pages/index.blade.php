@@ -2,10 +2,12 @@
     <x-slot:header>
         All Pages
     </x-slot:header>
+    <x-admin.card>
+        <x-slot:content>
 
-    <div class="mb-4 text-right mt-2">
+        <div class="text-right">
         <a href="{{ route('admin.create.page') }}"
-           class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/80 focus-visible:bg-primary/90">
+           class="mb-4 mt-4 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 bg-primary text-primary-foreground shadow hover:bg-primary/80 focus-visible:bg-primary/90">
             + New Page
         </a>
     </div>
@@ -77,4 +79,6 @@
             });
         });
     </script>
+        </x-slot:content>
+    </x-admin.card>
 </x-admin.layouts.auth>

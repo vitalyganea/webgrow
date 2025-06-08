@@ -167,7 +167,7 @@
 
             <main class="w-full">
                 @isset($header)
-                    <header class="flex items-center justify-between border-b bg-card px-6 py-4 sm:px-8 sm:py-6">
+                    <header class="flex items-center justify-between border-b border-r bg-card px-6 py-4 sm:px-8 sm:py-6">
                         <button @click="mobileMenuOpen = true"
                                 class="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground lg:hidden">
                             <i class="fas fa-bars text-lg"></i>
