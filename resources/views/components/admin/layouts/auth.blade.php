@@ -2,9 +2,9 @@
     <div class="min-h-screen relative" x-data="{ mobileMenuOpen: false }">
         <!-- Fixed desktop theme toggle -->
         <div class="fixed bottom-0 left-0 mb-2 ml-4 hidden lg:block z-10">
-            <x-admin.button id="theme-toggle-desktop" type="button" class="theme-toggle h-[2.7rem] w-[2.7rem]" size="icon" variant="toggle">
-                <i class="fas fa-moon hidden h-5 w-5" id="theme-toggle-desktop-light-icon"></i>
-                <i class="fas fa-sun hidden h-5 w-5" id="theme-toggle-desktop-dark-icon"></i>
+            <x-admin.button id="theme-toggle-desktop" type="button" class="text-xl theme-toggle h-[2.7rem] w-[2.7rem]" size="icon" variant="toggle">
+                <i class="fas fa-moon hidden" id="theme-toggle-desktop-light-icon"></i>
+                <i class="fas fa-sun hidden" id="theme-toggle-desktop-dark-icon"></i>
             </x-admin.button>
         </div>
 
@@ -114,7 +114,7 @@
 
         <!-- Rest of the template remains unchanged -->
         <div class="mx-auto flex max-w-screen-2xl">
-            <aside class="hidden min-h-screen w-80 shrink-0 items-start border-r p-8 lg:flex">
+            <aside class="hidden min-h-screen w-30 shrink-0 items-start border-r p-8 lg:flex">
                 <ul class="sticky top-8 flex w-full flex-col gap-y-2">
                     <li class="mb-8">
                         <div class="flex items-center font-normal">
