@@ -17,6 +17,13 @@ class Page extends Model
     ];
 
 
+    protected static function booted()
+    {
+        static::deleting(function ($page) {
+            $page->contents()->delete();
+        });
+    }
+
     public function contents()
     {
         return $this->hasMany(PageContent::class)->orderBy('order');

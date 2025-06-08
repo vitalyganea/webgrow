@@ -70,8 +70,6 @@ class PageController extends Controller
 
     public function edit($group_id)
     {
-
-
         // Retrieve all pages for the given group_id, keyed by language code
         $pages = Page::where('group_id', $group_id)
             ->with('contents') // Eager load related contents
@@ -104,8 +102,10 @@ class PageController extends Controller
             'pages.*.title' => 'required|string|max:255',
             'pages.*.slug' => 'required|string|max:255',
             'pages.*.language_code' => 'required|string|exists:languages,code',
-            'pages.*.blocks' => 'nullable|array', // adaugă validare pentru blocks
-            'pages.*.blocks.*' => 'nullable|string', // fiecare block e text html
+            'pages.*.blocks' => 'nullable|array',
+            'pages.*.blocks.*' => 'nullable|string',
+            'pages.*.blocks_order' => 'nullable|array',
+            'pages.*.blocks_order.*' => 'nullable|integer',
         ]);
 
         // Fetch existing pages for the group_id
@@ -114,7 +114,7 @@ class PageController extends Controller
         foreach ($data['pages'] as $languageCode => $pageData) {
             $page = $existingPages[$languageCode] ?? null;
 
-            // Verifică unicitatea slug-ului, ignorând pagina curentă
+            // Check slug uniqueness ignoring current group
             $slugCount = Page::where('slug', $pageData['slug'])
                 ->where('group_id', '!=', $group_id)
                 ->count();
@@ -137,7 +137,7 @@ class PageController extends Controller
                 ]);
             }
 
-            // Salvează conținutul blocurilor
+            // Save blocks content and order
             if (!empty($pageData['blocks']) && is_array($pageData['blocks'])) {
                 foreach ($pageData['blocks'] as $blockName => $blockContent) {
                     $pageContent = $page->contents()
@@ -145,16 +145,22 @@ class PageController extends Controller
                         ->where('language_code', $languageCode)
                         ->first();
 
+                    $order = 0;
+                    if (!empty($pageData['blocks_order'][$blockName])) {
+                        $order = (int) $pageData['blocks_order'][$blockName];
+                    }
+
                     if ($pageContent) {
                         $pageContent->update([
                             'content' => $blockContent,
+                            'order' => $order,
                         ]);
                     } else {
                         $page->contents()->create([
                             'block_name' => $blockName,
                             'language_code' => $languageCode,
                             'content' => $blockContent,
-                            'order' => 0, // opțional, setează după necesitate
+                            'order' => $order,
                         ]);
                     }
                 }
@@ -165,10 +171,21 @@ class PageController extends Controller
     }
 
 
-    public function destroy(Page $page)
+    public function destroy($pagesGroupId)
     {
-        $page->delete();
-        return redirect()->route('admin.get.pages')->with('success', 'Page deleted.');
+        // Get all pages by group_id
+        $pages = Page::where('group_id', $pagesGroupId)->get();
+
+        // Loop through each page to delete its contents and then the page
+        foreach ($pages as $page) {
+            // Delete related content blocks
+            $page->contents()->delete();
+
+            // Delete the page itself
+            $page->delete();
+        }
+
+        return redirect()->route('admin.get.pages')->with('success', 'Pages and their content blocks deleted.');
     }
 
     public function editHtml()
