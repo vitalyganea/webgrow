@@ -29,4 +29,10 @@ class Page extends Model
         return $this->hasMany(PageContent::class)->orderBy('order');
     }
 
+    public function seoValues()
+    {
+        return $this->hasMany(PageSeo::class, 'page_group_id', 'group_id')
+            ->with('tag');
+    }
+
 }

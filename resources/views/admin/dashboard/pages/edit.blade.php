@@ -7,6 +7,7 @@
     $languagesArray = $languages->map(fn($l) => ['code' => $l->code])->toArray();
     $defaultLang = $languages->first()->code ?? '';
     $pagesJson = json_encode($pages ?? []);
+    $seoDataJson = json_encode($seoData ?? []);
 @endphp
 
 <x-admin.layouts.auth title="Edit Page">
@@ -35,10 +36,15 @@
                     @endforeach
                 </div>
 
-                <!-- Add Content Button -->
-                <div class="mb-4">
+                <!-- Buttons for Content and SEO -->
+                <div class="mb-4 flex space-x-2">
                     <x-admin.button id="add-content-btn">
                         <i class="fa fa-plus" aria-hidden="true"></i>
+                        <span class="ml-1">Add Content</span>
+                    </x-admin.button>
+                    <x-admin.button id="edit-seo-btn">
+                        <i class="fa fa-tags" aria-hidden="true"></i>
+                        <span class="ml-1">Edit SEO</span>
                     </x-admin.button>
                 </div>
 
@@ -48,7 +54,6 @@
                         <h3 class="text-lg font-semibold mb-4">Select Content Type</h3>
                         <div id="content-types" class="space-y-2">
                             <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="html_template">HTML Template</button>
-                            <!-- Future content types can be added here -->
                         </div>
                         <div id="content-block-selection" class="mt-4 hidden">
                             <label class="block font-semibold mb-1">Select HTML Template</label>
@@ -68,6 +73,30 @@
                         <div class="mt-4 flex justify-end space-x-2">
                             <button id="cancel-modal" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
                             <button id="confirm-content" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" disabled>Confirm</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal for SEO Editing -->
+                <div id="seo-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+                    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                        <h3 class="text-lg font-semibold mb-4">Edit SEO Tags</h3>
+                        <div id="seo-fields" class="space-y-4">
+                            @foreach ($seoData[$defaultLang] ?? [] as $tag => $value)
+                                <div>
+                                    <label class="block font-semibold mb-1 capitalize">{{ $tag }}</label>
+                                    <input
+                                        type="text"
+                                        class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                        data-tag="{{ $tag }}"
+                                        value=""
+                                    />
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-4 flex justify-end space-x-2">
+                            <button id="cancel-seo-modal" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
+                                <button id="save-seo-btn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Save SEO</button>
                         </div>
                     </div>
                 </div>
@@ -117,7 +146,7 @@
                                         @else
                                             <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="w-full rounded border border-gray-300 p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
                                         @endif
-                                        <input type="hidden" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][type]" value="{{$blockData['type']}}" />
+                                        <input type="hidden" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][type]" value="{{ $blockData['type'] }}" />
                                     </div>
                                     <input type="hidden" name="pages[{{ $language->code }}][blocks_order][{{ $blockId }}]" class="block-order-input" value="{{ $loop->index }}" />
                                 </div>
@@ -141,7 +170,9 @@
     <script>
         const languages = @json($languagesArray);
         const oldPages = {!! $pagesJson !!};
+        const seoData = {!! $seoDataJson !!};
         const defaultLang = @json($defaultLang);
+        const groupId = @json($group_id);
         let globalCssFiles = '/custom/home/assets/css/main.css';
 
         function showLangSection(langCode) {
@@ -162,10 +193,9 @@
                     }
 
                     const blockId = Date.now().toString();
-                    const index   = pageForm.querySelectorAll('.accordion').length;
+                    const index = pageForm.querySelectorAll('.accordion').length;
 
                     const wrapper = document.createElement('div');
-
                     wrapper.classList.add(
                         'accordion',
                         'border', 'border-gray-300',
@@ -178,30 +208,30 @@
                     wrapper.setAttribute('data-block-type', 'html_template');
 
                     wrapper.innerHTML = `
-                      <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition" data-toggle>
-                          <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
-                          <span class="flex-grow">{{ config('admin.admin-static-text.html_template') }}</span>
-                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
-                      </h4>
-                      <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
-                        <textarea
-                          id="editor_${langCode}_${blockId}"
-                          class="tinymce-editor w-full rounded border border-gray-300 p-2"
-                          name="pages[${langCode}][blocks][${blockId}][content]"
-                          rows="10"
-                        >${content}</textarea>
+                        <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition" data-toggle>
+                            <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                            <span class="flex-grow">{{ config('admin.admin-static-text.html_template') }}</span>
+                            <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                        </h4>
+                        <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                            <textarea
+                                id="editor_${langCode}_${blockId}"
+                                class="tinymce-editor w-full rounded border border-gray-300 p-2"
+                                name="pages[${langCode}][blocks][${blockId}][content]"
+                                rows="10"
+                            >${content}</textarea>
+                            <input
+                                type="hidden"
+                                name="pages[${langCode}][blocks][${blockId}][type]"
+                                value="html_template"
+                            />
+                        </div>
                         <input
-                          type="hidden"
-                          name="pages[${langCode}][blocks][${blockId}][type]"
-                          value="html_template"
+                            type="hidden"
+                            name="pages[${langCode}][blocks_order][${blockId}]"
+                            class="block-order-input"
+                            value="${index}"
                         />
-                      </div>
-                      <input
-                        type="hidden"
-                        name="pages[${langCode}][blocks_order][${blockId}]"
-                        class="block-order-input"
-                        value="${index}"
-                      />
                     `;
 
                     const accordions = pageForm.getElementsByClassName('accordion');
@@ -297,13 +327,10 @@
                                     editor.remove();
                                 }
                             }
-
                         });
-
                         initStaticEditors();
                     },
                 });
-
             }
         }
 
@@ -311,6 +338,45 @@
             languages.forEach(lang => {
                 initSortableForSection(lang.code);
             });
+        }
+
+        function loadSeoData(langCode) {
+            const seoInputs = document.querySelectorAll('#seo-fields .seo-input');
+            seoInputs.forEach(input => {
+                const tag = input.dataset.tag;
+                input.value = seoData[langCode] && seoData[langCode][tag] ? seoData[langCode][tag] : '';
+            });
+        }
+
+        function saveSeoData(langCode) {
+            const seoInputs = document.querySelectorAll('#seo-fields .seo-input');
+            const seoPayload = {};
+            seoInputs.forEach(input => {
+                seoPayload[input.dataset.tag] = input.value;
+            });
+
+            fetch('{{ route('admin.update.seo', $group_id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    language_code: langCode,
+                    seo: seoPayload,
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        seoData[langCode] = seoPayload; // Update client-side SEO data
+                    } else {
+                        alert('Failed to save SEO data: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving SEO data:', error);
+                });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -333,20 +399,20 @@
 
             showLangSection(defaultLang);
 
-            const modal = document.getElementById('content-modal');
+            const contentModal = document.getElementById('content-modal');
             const addContentBtn = document.getElementById('add-content-btn');
-            const cancelModalBtn = document.getElementById('cancel-modal');
+            const cancelContentModalBtn = document.getElementById('cancel-modal');
             const confirmContentBtn = document.getElementById('confirm-content');
             const contentTypeButtons = document.querySelectorAll('.content-type-btn');
             const htmlFileSelect = document.getElementById('html-file-select');
             const contentBlockSelection = document.getElementById('content-block-selection');
 
             addContentBtn.addEventListener('click', () => {
-                modal.classList.remove('hidden');
+                contentModal.classList.remove('hidden');
             });
 
-            cancelModalBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
+            cancelContentModalBtn.addEventListener('click', () => {
+                contentModal.classList.add('hidden');
                 contentBlockSelection.classList.add('hidden');
                 htmlFileSelect.value = '';
                 confirmContentBtn.disabled = true;
@@ -376,12 +442,31 @@
                 if (selectedFile) {
                     const [folder, file] = selectedFile.split('/');
                     loadHtmlContent(folder, file, currentLang);
-                    modal.classList.add('hidden');
+                    contentModal.classList.add('hidden');
                     contentBlockSelection.classList.add('hidden');
                     htmlFileSelect.value = '';
                     confirmContentBtn.disabled = true;
                     initStaticEditors();
                 }
+            });
+
+            const seoModal = document.getElementById('seo-modal');
+            const editSeoBtn = document.getElementById('edit-seo-btn');
+            const cancelSeoModalBtn = document.getElementById('cancel-seo-modal');
+            const saveSeoBtn = document.getElementById('save-seo-btn');
+
+            editSeoBtn.addEventListener('click', () => {
+                loadSeoData(currentLang);
+                seoModal.classList.remove('hidden');
+            });
+
+            cancelSeoModalBtn.addEventListener('click', () => {
+                seoModal.classList.add('hidden');
+            });
+
+            saveSeoBtn.addEventListener('click', () => {
+                saveSeoData(currentLang);
+                seoModal.classList.add('hidden');
             });
         });
     </script>

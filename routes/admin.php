@@ -74,9 +74,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('pages/{group_id}', [PageController::class, 'update'])->name('update.page');
         Route::delete('pages/{group_id}', [PageController::class, 'destroy'])->name('delete.page');
 
-
-        Route::get('page/edit-html', [PageController::class, 'editHtml'])->name('admin.editHtml');
-        Route::post('page/update-html', [PageController::class, 'updateHtml'])->name('admin.updateHtml');
+        Route::post('pages/{group_id}/seo', [PageController::class, 'updateSeo'])->name('update.seo');
 
 
         Route::get('languages', [LanguageController::class, 'index'])->name('get.languages');

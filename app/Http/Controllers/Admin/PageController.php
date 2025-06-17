@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Language;
 use App\Models\Admin\Page;
+use App\Models\Admin\PageSeo;
+use App\Models\Admin\SeoTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -72,31 +74,41 @@ class PageController extends Controller
     {
         // Retrieve all pages for the given group_id, keyed by language code
         $pages = Page::where('group_id', $group_id)
-            ->with('contents')
+            ->with(['contents', 'seoValues.tag'])
             ->get()
             ->keyBy('language');
 
-        // Retrieve all available languages
         $languages = Language::all();
+        $seoTags = SeoTag::all();
 
-        // Redirect if no pages are found
         if ($pages->isEmpty()) {
             return redirect()->route('admin.get.pages')->with('error', 'Page not found.');
         }
 
-        // Prepare block contents per language and block ID
         $blockContents = [];
+        $seoData = [];
 
         foreach ($pages as $langCode => $page) {
+            // Page content blocks
             foreach ($page->contents as $content) {
                 $blockContents[$langCode][$content->id] = [
                     'content' => $content->content,
                     'type' => $content->type,
                 ];
             }
+
+            // SEO values indexed by seo_tag_id for easier lookup
+            $seoValuesByTagId = $page->seoValues
+                ->where('lang', $langCode)
+                ->keyBy('seo_tag_id');
+
+            // Match each tag to its value or null
+            foreach ($seoTags as $tag) {
+                $seoData[$langCode][$tag->seo_tag] = $seoValuesByTagId[$tag->id]->value ?? null;
+            }
         }
 
-        return view('admin.dashboard.pages.edit', compact('pages', 'languages', 'group_id', 'blockContents'));
+        return view('admin.dashboard.pages.edit', compact('pages', 'languages', 'group_id', 'blockContents', 'seoData'));
     }
 
     public function update(Request $request, $group_id)
@@ -193,28 +205,33 @@ class PageController extends Controller
         return redirect()->route('admin.get.pages')->with('success', 'Pages and their content blocks deleted.');
     }
 
-    public function editHtml()
-    {
-        $filePath = public_path('custom/index.html');
-
-        if (!File::exists($filePath)) {
-            File::put($filePath, '<!-- Start editing your page here -->');
-        }
-
-        $htmlContent = File::get($filePath);
-
-        return view('admin.edit-html', compact('htmlContent'));
-    }
-
-    public function updateHtml(Request $request)
+    public function updateSeo(Request $request, $group_id)
     {
         $request->validate([
-            'html_content' => 'required|string',
+            'language_code' => 'required|string',
+            'seo' => 'required|array',
         ]);
 
-        $filePath = public_path('custom/index.html');
-        File::put($filePath, $request->input('html_content'));
+        $languageCode = $request->input('language_code');
+        $seoData = $request->input('seo');
 
-        return redirect()->route('admin.editHtml')->with('success', 'HTML updated successfully.');
+        foreach ($seoData as $tag => $value) {
+            $seoTag = SeoTag::where('seo_tag', $tag)->first();
+            if ($seoTag) {
+                PageSeo::updateOrCreate(
+                    [
+                        'page_group_id' => $group_id,
+                        'seo_tag_id' => $seoTag->id,
+                        'lang' => $languageCode,
+                    ],
+                    ['value' => $value]
+                );
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'SEO data updated successfully.',
+        ]);
     }
 }
