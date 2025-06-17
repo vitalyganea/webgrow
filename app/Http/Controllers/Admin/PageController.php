@@ -72,7 +72,7 @@ class PageController extends Controller
     {
         // Retrieve all pages for the given group_id, keyed by language code
         $pages = Page::where('group_id', $group_id)
-            ->with('contents') // Eager load related contents
+            ->with('contents')
             ->get()
             ->keyBy('language');
 
@@ -84,12 +84,15 @@ class PageController extends Controller
             return redirect()->route('admin.get.pages')->with('error', 'Page not found.');
         }
 
-        // Prepare block contents per language and block name
+        // Prepare block contents per language and block ID
         $blockContents = [];
 
         foreach ($pages as $langCode => $page) {
             foreach ($page->contents as $content) {
-                $blockContents[$langCode][$content->block_name] = $content->content;
+                $blockContents[$langCode][$content->id] = [
+                    'content' => $content->content,
+                    'type' => $content->type,
+                ];
             }
         }
 
@@ -103,13 +106,15 @@ class PageController extends Controller
             'pages.*.slug' => 'required|string|max:255',
             'pages.*.language_code' => 'required|string|exists:languages,code',
             'pages.*.blocks' => 'nullable|array',
-            'pages.*.blocks.*' => 'nullable|string',
+            'pages.*.blocks.*.content' => 'nullable|string',
+            'pages.*.blocks.*.type' => 'required|string', // Add other types in the future
             'pages.*.blocks_order' => 'nullable|array',
             'pages.*.blocks_order.*' => 'nullable|integer',
         ]);
 
         // Fetch existing pages for the group_id
         $existingPages = Page::where('group_id', $group_id)->get()->keyBy('language');
+
 
         foreach ($data['pages'] as $languageCode => $pageData) {
             $page = $existingPages[$languageCode] ?? null;
@@ -139,27 +144,28 @@ class PageController extends Controller
 
             // Save blocks content and order
             if (!empty($pageData['blocks']) && is_array($pageData['blocks'])) {
-                foreach ($pageData['blocks'] as $blockName => $blockContent) {
+                foreach ($pageData['blocks'] as $blockId => $blockData) {
                     $pageContent = $page->contents()
-                        ->where('block_name', $blockName)
+                        ->where('id', $blockId)
                         ->where('language_code', $languageCode)
                         ->first();
 
                     $order = 0;
-                    if (!empty($pageData['blocks_order'][$blockName])) {
-                        $order = (int) $pageData['blocks_order'][$blockName];
+                    if (!empty($pageData['blocks_order'][$blockId])) {
+                        $order = (int) $pageData['blocks_order'][$blockId];
                     }
 
                     if ($pageContent) {
                         $pageContent->update([
-                            'content' => $blockContent,
+                            'content' => $blockData['content'],
+                            'type' => $blockData['type'],
                             'order' => $order,
                         ]);
                     } else {
                         $page->contents()->create([
-                            'block_name' => $blockName,
                             'language_code' => $languageCode,
-                            'content' => $blockContent,
+                            'content' => $blockData['content'],
+                            'type' => $blockData['type'],
                             'order' => $order,
                         ]);
                     }
@@ -169,7 +175,6 @@ class PageController extends Controller
 
         return redirect()->route('admin.get.pages')->with('success', 'Page updated.');
     }
-
 
     public function destroy($pagesGroupId)
     {

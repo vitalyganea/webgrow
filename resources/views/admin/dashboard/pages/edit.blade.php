@@ -15,7 +15,7 @@
     <x-admin.card>
         <x-slot:header>
             <x-slot:title>Page Information</x-slot:title>
-            <x-slot:description>Edit HTML content for each language and block.</x-slot:description>
+            <x-slot:description>Edit content for each language and block.</x-slot:description>
         </x-slot:header>
 
         <x-slot:content>
@@ -37,9 +37,9 @@
 
                 <!-- Add Content Button -->
                 <div class="mb-4">
-                        <x-admin.button id="add-content-btn">
-                            <i class="fa fa-plus" aria-hidden="true"></i>
-                        </x-admin.button>
+                    <x-admin.button id="add-content-btn">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
+                    </x-admin.button>
                 </div>
 
                 <!-- Modal for Content Selection -->
@@ -47,13 +47,12 @@
                     <div class="bg-white rounded-lg p-6 w-full max-w-md">
                         <h3 class="text-lg font-semibold mb-4">Select Content Type</h3>
                         <div id="content-types" class="space-y-2">
-                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="content-block">Content Block</button>
+                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="html_template">HTML Template</button>
                             <!-- Future content types can be added here -->
                         </div>
                         <div id="content-block-selection" class="mt-4 hidden">
-                            <label class="block font-semibold mb-1">Select HTML File</label>
+                            <label class="block font-semibold mb-1">Select HTML Template</label>
                             <select id="html-file-select" class="border border-gray-300 rounded-md p-2 w-full">
-                                <option value="">-- Select HTML File --</option>
                                 @foreach ($blockFolders as $folder)
                                     @php
                                         $htmlFiles = collect(File::files(public_path("custom/{$folder}")))
@@ -105,17 +104,22 @@
                         </div>
 
                         @if(isset($blockContents[$language->code]) && is_array($blockContents[$language->code]))
-                            @foreach ($blockContents[$language->code] as $index => $blockContent)
-                                <div class="accordion border border-gray-300 rounded-md overflow-hidden" data-block-name="{{ $index }}">
-                                    <h4 class="accordion-header flex justify-between items-center font-semibold cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200" data-toggle>
-                                        <i class="fas fa-grip-vertical mr-2 cursor-move drag-handle"></i>
-                                        {{ $index }}
-                                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow"></i>
+                            @foreach ($blockContents[$language->code] as $blockId => $blockData)
+                                <div class="accordion border border-gray-300 overflow-hidden shadow-sm mb-4 transition-shadow duration-200" data-block-id="{{ $blockId }}" data-block-type="{{ $blockData['type'] }}">
+                                    <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+                                        <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                                        <span class="flex-grow">{{ config('admin.admin-static-text.' . $blockData['type']) }}</span>
+                                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
                                     </h4>
-                                    <div class="accordion-body px-4 py-2 hidden">
-                                        <textarea id="editor-{{ $language->code }}-{{ $index }}" class="tinymce-editor" name="pages[{{ $language->code }}][blocks][{{ $index }}]">{{ $blockContent }}</textarea>
+                                    <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                                        @if($blockData['type'] === 'html_template')
+                                            <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="tinymce-editor w-full rounded border border-gray-300 p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
+                                        @else
+                                            <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="w-full rounded border border-gray-300 p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
+                                        @endif
+                                        <input type="hidden" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][type]" value="{{$blockData['type']}}" />
                                     </div>
-                                    <input type="hidden" name="pages[{{ $language->code }}][blocks_order][{{ $index }}]" class="block-order-input" value="{{ $loop->index }}" />
+                                    <input type="hidden" name="pages[{{ $language->code }}][blocks_order][{{ $blockId }}]" class="block-order-input" value="{{ $loop->index }}" />
                                 </div>
                             @endforeach
                         @endif
@@ -157,37 +161,62 @@
                         return;
                     }
 
-                    const blockName = file; // Use only the file name
-                    const index = pageForm.querySelectorAll('.accordion').length;
+                    const blockId = Date.now().toString();
+                    const index   = pageForm.querySelectorAll('.accordion').length;
 
                     const wrapper = document.createElement('div');
-                    wrapper.classList.add('accordion', 'border', 'border-gray-300', 'rounded-md', 'overflow-hidden', 'mb-2');
-                    wrapper.setAttribute('data-block-name', blockName);
+
+                    wrapper.classList.add(
+                        'accordion',
+                        'border', 'border-gray-300',
+                        'overflow-hidden',
+                        'shadow-sm',
+                        'mb-4',
+                        'transition-shadow', 'duration-200'
+                    );
+                    wrapper.setAttribute('data-block-id', blockId);
+                    wrapper.setAttribute('data-block-type', 'html_template');
+
                     wrapper.innerHTML = `
-    <h4 class="accordion-header flex justify-between items-center font-semibold cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200" data-toggle>
-        <i class="fas fa-grip-vertical mr-2 cursor-move drag-handle"></i>
-        ${blockName}
-        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow"></i>
-    </h4>
-    <div class="accordion-body px-4 py-2 hidden">
-        <textarea id="editor_${langCode}_${blockName}" class="tinymce-editor" name="pages[${langCode}][blocks][${blockName}]" rows="10">${content}</textarea>
-    </div>
-    <input type="hidden" name="pages[${langCode}][blocks_order][${blockName}]" class="block-order-input" value="${index}" />
-`;
+                      <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition" data-toggle>
+                          <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                          <span class="flex-grow">{{ config('admin.admin-static-text.html_template') }}</span>
+                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                      </h4>
+                      <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                        <textarea
+                          id="editor_${langCode}_${blockId}"
+                          class="tinymce-editor w-full rounded border border-gray-300 p-2"
+                          name="pages[${langCode}][blocks][${blockId}][content]"
+                          rows="10"
+                        >${content}</textarea>
+                        <input
+                          type="hidden"
+                          name="pages[${langCode}][blocks][${blockId}][type]"
+                          value="html_template"
+                        />
+                      </div>
+                      <input
+                        type="hidden"
+                        name="pages[${langCode}][blocks_order][${blockId}]"
+                        class="block-order-input"
+                        value="${index}"
+                      />
+                    `;
 
                     const accordions = pageForm.getElementsByClassName('accordion');
                     const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
                     if (lastAccordion) {
                         lastAccordion.insertAdjacentElement('afterend', wrapper);
                     } else {
-                        pageForm.appendChild(wrapper); // Fallback if no accordion exists
+                        pageForm.appendChild(wrapper);
                     }
 
                     setTimeout(() => {
                         tinymce.init({
-                            selector: `#editor_${langCode}_${blockName}`,
-                            plugins: 'fullscreen link image code lists autoresize',
-                            toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
+                            selector: `#editor_${langCode}_${blockId}`,
+                            plugins: 'fullscreen link image code lists autoresize advcolor',
+                            toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
                             autoresize_bottom_margin: 10,
                             setup: editor => {
@@ -196,7 +225,6 @@
                         });
                         initAccordionToggle();
                         initStaticEditors();
-                        // Reinitialize Sortable for the specific language section
                         initSortableForSection(langCode);
                     }, 200);
                 })
@@ -206,21 +234,30 @@
         }
 
         function initStaticEditors() {
-            tinymce.init({
-                selector: 'textarea.tinymce-editor',
-                plugins: 'fullscreen link image code lists autoresize',
-                toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
-                content_css: globalCssFiles,
-                autoresize_bottom_margin: 10,
-                setup: editor => {
-                    editor.on('change', () => editor.save());
+            document.querySelectorAll('textarea.tinymce-editor').forEach(textarea => {
+                const accordion = textarea.closest('.accordion');
+                if (accordion && accordion.dataset.blockType === 'html_template') {
+                    const editorId = textarea.id;
+                    const editor = tinymce.get(editorId);
+                    if (!editor) {
+                        tinymce.init({
+                            selector: `#${editorId}`,
+                            plugins: 'fullscreen link image code lists autoresize advcolor',
+                            toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
+                            content_css: globalCssFiles,
+                            autoresize_bottom_margin: 10,
+                            setup: editor => {
+                                editor.on('change', () => editor.save());
+                            }
+                        });
+                    }
                 }
             });
         }
 
         function initAccordionToggle() {
             document.querySelectorAll('.accordion-header').forEach(header => {
-                header.removeEventListener('click', toggleAccordion); // Prevent duplicate listeners
+                header.removeEventListener('click', toggleAccordion);
                 header.addEventListener('click', toggleAccordion);
             });
         }
@@ -245,33 +282,28 @@
                     animation: 150,
                     draggable: '.accordion',
                     onStart: () => {
-                        // Save all TinyMCE editor contents before sorting
-                        tinymce.get().forEach(editor => {
-                            editor.save(); // Save content to the underlying textarea
-                        });
+                        tinymce.get().forEach(editor => editor.save());
                     },
                     onEnd: () => {
                         const accordions = langSection.querySelectorAll('.accordion');
                         accordions.forEach((accordion, index) => {
-                            // Update block order
                             const input = accordion.querySelector('.block-order-input');
                             if (input) input.value = index;
 
-                            // Get the textarea
                             const textarea = accordion.querySelector('textarea');
-                            if (textarea) {
-
-                                // Remove existing editor instance to prevent duplication
+                            if (textarea && accordion.dataset.blockType === 'html_template') {
                                 const editor = tinymce.get(textarea.id);
                                 if (editor) {
-                                    editor.remove(); // Clean up old instance
+                                    editor.remove();
                                 }
-
                             }
+
                         });
+
                         initStaticEditors();
                     },
                 });
+
             }
         }
 
@@ -326,7 +358,7 @@
                     contentTypeButtons.forEach(btn => btn.classList.remove('bg-blue-100'));
                     button.classList.add('bg-blue-100');
 
-                    if (type === 'content-block') {
+                    if (type === 'html_template') {
                         contentBlockSelection.classList.remove('hidden');
                         htmlFileSelect.focus();
                     } else {

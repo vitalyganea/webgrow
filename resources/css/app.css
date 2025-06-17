@@ -64,4 +64,14 @@
             'rlig' 1,
             'calt' 1;
     }
+
+    .accordion.sortable-chosen {
+        background-color: #f9fafb;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transform: scale(1.01);
+    }
+
+    .accordion.sortable-ghost {
+        opacity: 0.5;
+    }
 }
