@@ -37,9 +37,9 @@
 
                 <!-- Add Content Button -->
                 <div class="mb-4">
-                    <button id="add-content-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                        Add Content
-                    </button>
+                        <x-admin.button id="add-content-btn">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </x-admin.button>
                 </div>
 
                 <!-- Modal for Content Selection -->
@@ -122,7 +122,7 @@
 
                         <div class="blocks-container space-y-4" data-lang="{{ $language->code }}"></div>
 
-                        <div class="mt-6" id="save-button-container">
+                        <div class="mt-6" id="save-button-container-{{ $language->code }}">
                             <x-admin.button>Save Changes</x-admin.button>
                         </div>
                     </form>
@@ -152,7 +152,11 @@
                 .then(response => response.text())
                 .then(content => {
                     const pageForm = document.querySelector(`#page-form-${langCode}`);
-                    const saveButtonContainer = document.querySelector(`#save-button-container`);
+                    if (!pageForm) {
+                        console.error(`No element found with ID page-form-${langCode}`);
+                        return;
+                    }
+
                     const blockName = file; // Use only the file name
                     const index = pageForm.querySelectorAll('.accordion').length;
 
@@ -170,7 +174,14 @@
     </div>
     <input type="hidden" name="pages[${langCode}][blocks_order][${blockName}]" class="block-order-input" value="${index}" />
 `;
-                    pageForm.insertBefore(wrapper, saveButtonContainer);
+
+                    const accordions = pageForm.getElementsByClassName('accordion');
+                    const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
+                    if (lastAccordion) {
+                        lastAccordion.insertAdjacentElement('afterend', wrapper);
+                    } else {
+                        pageForm.appendChild(wrapper); // Fallback if no accordion exists
+                    }
 
                     setTimeout(() => {
                         tinymce.init({
