@@ -1,0 +1,36 @@
+<?php
+
+return [
+    [
+        'label' => 'Pages',
+        'route' => 'admin.get.pages',
+        'icon' => 'fas fa-file-alt',
+        'active_routes' => ['admin.get.pages', 'admin.create.page', 'admin.edit.page'],
+    ],
+    [
+        'label' => 'Languages',
+        'route' => 'admin.get.languages',
+        'icon' => 'fas fa-language',
+        'active_routes' => ['admin.get.languages', 'admin.create.language', 'admin.edit.language'],
+    ],
+    [
+        'label' => 'Seo Tags',
+        'route' => 'admin.get.seo-tags',
+        'icon' => 'fas fa-tags',
+        'active_routes' => ['admin.get.seo-tags', 'admin.create.seo-tag', 'admin.edit.seo-tag'],
+    ],
+
+    [
+        'label' => 'Website Menu',
+        'route' => 'admin.get.seo-tags',
+        'icon' => 'fas fa-bars',
+        'active_routes' => ['admin.get.seo-tags', 'admin.create.seo-tag', 'admin.edit.seo-tag'],
+    ],
+
+    [
+        'label' => 'Settings',
+        'route' => 'admin.settings.account',
+        'icon' => 'fas fa-cog',
+        'active_routes' => ['admin.settings.*'],
+    ],
+];

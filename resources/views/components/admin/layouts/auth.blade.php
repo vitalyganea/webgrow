@@ -59,30 +59,15 @@
                                 </div>
                             </div>
                         </li>
-
-                        <!-- Navigation links -->
-                        <x-admin.aside.link :href="route('admin.get.pages')" @click="mobileMenuOpen = false">
-                            <i class="fas fa-file-alt mr-2"></i>
-                            Pages
-                        </x-admin.aside.link>
-
-                        <x-admin.aside.link :href="route('admin.get.languages')" @click="mobileMenuOpen = false">
-                            <i class="fas fa-language mr-2"></i>
-                            Languages
-                        </x-admin.aside.link>
-
-                        <x-admin.aside.link :href="route('admin.get.seo-tags')" @click="mobileMenuOpen = false">
-                            <i class="fas fa-tags mr-2"></i>
-                            Seo Tags
-                        </x-admin.aside.link>
-
-                        <x-admin.aside.link :href="route('admin.settings.account')"
-                                            :active="request()->routeIs('admin.settings.*')"
-                                            @click="mobileMenuOpen = false">
-                            <i class="fas fa-cog mr-2"></i>
-                            Settings
-                        </x-admin.aside.link>
-
+                        @foreach(config('admin.admin-sidebar') as $item)
+                            <x-admin.aside.link
+                                :href="route($item['route'])"
+                                :active="request()->routeIs($item['active_routes'])"
+                                @click="mobileMenuOpen = false">
+                                <i class="{{$item['icon']}} mr-2"></i>
+                                {{$item['label']}}
+                            </x-admin.aside.link>
+                        @endforeach
                         <x-admin.separator />
 
                         <!-- Theme toggle for mobile -->
@@ -132,27 +117,14 @@
                             </div>
                         </div>
                     </li>
-
-                    <x-admin.aside.link :href="route('admin.get.pages')">
-                        <i class="fas fa-file-alt mr-2"></i>
-                        Pages
-                    </x-admin.aside.link>
-
-                    <x-admin.aside.link :href="route('admin.get.languages')">
-                        <i class="fas fa-language mr-2"></i>
-                        Languages
-                    </x-admin.aside.link>
-
-                    <x-admin.aside.link :href="route('admin.get.seo-tags')">
-                        <i class="fas fa-tags mr-2"></i>
-                        Seo Tags
-                    </x-admin.aside.link>
-
-                    <x-admin.aside.link :href="route('admin.settings.account')" :active="request()->routeIs('admin.settings.*')">
-                        <i class="fas fa-cog mr-2"></i>
-                        Settings
-                    </x-admin.aside.link>
-
+                    @foreach(config('admin.admin-sidebar') as $item)
+                        <x-admin.aside.link
+                            :href="route($item['route'])"
+                            :active="request()->routeIs($item['active_routes'])">
+                            <i class="{{$item['icon']}} mr-2"></i>
+                            {{$item['label']}}
+                        </x-admin.aside.link>
+                    @endforeach
                     <x-admin.separator />
 
                     <form method="POST" action="{{ route('admin.logout') }}">
