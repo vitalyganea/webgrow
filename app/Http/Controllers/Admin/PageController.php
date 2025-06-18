@@ -184,8 +184,7 @@ class PageController extends Controller
                 }
             }
         }
-
-        return redirect()->route('admin.get.pages')->with('success', 'Page updated.');
+        return redirect()->route('admin.edit.page', $group_id)->with('success', 'Page updated.');
     }
 
     public function destroy($pagesGroupId)
@@ -193,11 +192,13 @@ class PageController extends Controller
         // Get all pages by group_id
         $pages = Page::where('group_id', $pagesGroupId)->get();
 
+        // Delete seo
+        PageSeo::where('page_group_id', $pagesGroupId)->delete();
+
         // Loop through each page to delete its contents and then the page
         foreach ($pages as $page) {
             // Delete related content blocks
             $page->contents()->delete();
-
             // Delete the page itself
             $page->delete();
         }
@@ -229,9 +230,6 @@ class PageController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'SEO data updated successfully.',
-        ]);
+        return redirect()->route('admin.edit.page', $group_id)->with('success', 'Seo updated with succes.');
     }
 }

@@ -81,23 +81,28 @@
                 <div id="seo-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
                     <div class="bg-white rounded-lg p-6 w-full max-w-md">
                         <h3 class="text-lg font-semibold mb-4">Edit SEO Tags</h3>
-                        <div id="seo-fields" class="space-y-4">
-                            @foreach ($seoData[$defaultLang] ?? [] as $tag => $value)
-                                <div>
-                                    <label class="block font-semibold mb-1 capitalize">{{ $tag }}</label>
-                                    <input
-                                        type="text"
-                                        class="seo-input border border-gray-300 rounded-md p-2 w-full"
-                                        data-tag="{{ $tag }}"
-                                        value=""
-                                    />
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="mt-4 flex justify-end space-x-2">
-                            <button id="cancel-seo-modal" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
-                                <button id="save-seo-btn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Save SEO</button>
-                        </div>
+                        <form method="POST" action="{{ route('admin.update.seo', $group_id) }}" id="seo-form">
+                            @csrf
+                            <input type="hidden" name="language_code" id="seo-lang-code" value="{{ $defaultLang }}" />
+                            <div id="seo-fields" class="space-y-4">
+                                @foreach ($seoData[$defaultLang] ?? [] as $tag => $value)
+                                    <div>
+                                        <label class="block font-semibold mb-1 capitalize">{{ $tag }}</label>
+                                        <input
+                                            type="text"
+                                            class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                            name="seo[{{ $tag }}]"
+                                            data-tag="{{ $tag }}"
+                                            value=""
+                                        />
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <button type="button" id="cancel-seo-modal" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Save SEO</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -346,37 +351,7 @@
                 const tag = input.dataset.tag;
                 input.value = seoData[langCode] && seoData[langCode][tag] ? seoData[langCode][tag] : '';
             });
-        }
-
-        function saveSeoData(langCode) {
-            const seoInputs = document.querySelectorAll('#seo-fields .seo-input');
-            const seoPayload = {};
-            seoInputs.forEach(input => {
-                seoPayload[input.dataset.tag] = input.value;
-            });
-
-            fetch('{{ route('admin.update.seo', $group_id) }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({
-                    language_code: langCode,
-                    seo: seoPayload,
-                }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        seoData[langCode] = seoPayload; // Update client-side SEO data
-                    } else {
-                        alert('Failed to save SEO data: ' + (data.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error saving SEO data:', error);
-                });
+            document.getElementById('seo-lang-code').value = langCode;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -453,7 +428,6 @@
             const seoModal = document.getElementById('seo-modal');
             const editSeoBtn = document.getElementById('edit-seo-btn');
             const cancelSeoModalBtn = document.getElementById('cancel-seo-modal');
-            const saveSeoBtn = document.getElementById('save-seo-btn');
 
             editSeoBtn.addEventListener('click', () => {
                 loadSeoData(currentLang);
@@ -461,11 +435,6 @@
             });
 
             cancelSeoModalBtn.addEventListener('click', () => {
-                seoModal.classList.add('hidden');
-            });
-
-            saveSeoBtn.addEventListener('click', () => {
-                saveSeoData(currentLang);
                 seoModal.classList.add('hidden');
             });
         });
