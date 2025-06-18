@@ -48,63 +48,12 @@
                     </x-admin.button>
                 </div>
 
-                <!-- Modal for Content Selection -->
-                <div id="content-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                    <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 class="text-lg font-semibold mb-4">Select Content Type</h3>
-                        <div id="content-types" class="space-y-2">
-                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="html_template">HTML Template</button>
-                        </div>
-                        <div id="content-block-selection" class="mt-4 hidden">
-                            <label class="block font-semibold mb-1">Select HTML Template</label>
-                            <select id="html-file-select" class="border border-gray-300 rounded-md p-2 w-full">
-                                @foreach ($blockFolders as $folder)
-                                    @php
-                                        $htmlFiles = collect(File::files(public_path("custom/{$folder}")))
-                                            ->filter(fn($file) => $file->getExtension() === 'html')
-                                            ->map(fn($file) => $file->getBasename());
-                                    @endphp
-                                    @foreach ($htmlFiles as $file)
-                                        <option value="{{ $folder }}/{{ $file }}">{{ $folder }}/{{ $file }}</option>
-                                    @endforeach
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mt-4 flex justify-end space-x-2">
-                            <button id="cancel-modal" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
-                            <button id="confirm-content" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" disabled>Confirm</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal for SEO Editing -->
-                <div id="seo-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
-                    <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 class="text-lg font-semibold mb-4">Edit SEO Tags</h3>
-                        <form method="POST" action="{{ route('admin.update.seo', $group_id) }}" id="seo-form">
-                            @csrf
-                            <input type="hidden" name="language_code" id="seo-lang-code" value="{{ $defaultLang }}" />
-                            <div id="seo-fields" class="space-y-4">
-                                @foreach ($seoData[$defaultLang] ?? [] as $tag => $value)
-                                    <div>
-                                        <label class="block font-semibold mb-1 capitalize">{{ $tag }}</label>
-                                        <input
-                                            type="text"
-                                            class="seo-input border border-gray-300 rounded-md p-2 w-full"
-                                            name="seo[{{ $tag }}]"
-                                            data-tag="{{ $tag }}"
-                                            value=""
-                                        />
-                                    </div>
-                                @endforeach
-                            </div>
-                            <div class="mt-4 flex justify-end space-x-2">
-                                <button type="button" id="cancel-seo-modal" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
-                                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Save SEO</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <!-- Hidden SEO Form -->
+                <form method="POST" action="{{ route('admin.update.seo', $group_id) }}" id="hidden-seo-form" class="hidden">
+                    @csrf
+                    <input type="hidden" name="language_code" id="hidden-seo-lang-code" />
+                    <!-- SEO inputs will be dynamically added here -->
+                </form>
 
                 @foreach ($languages as $language)
                     <form method="POST" action="{{ route('admin.update.page', $group_id) }}" class="lang-section mt-6 space-y-6" data-lang="{{ $language->code }}" style="display: none;" id="page-form-{{ $language->code }}">
@@ -142,7 +91,7 @@
                                 <div class="accordion border border-gray-300 overflow-hidden shadow-sm mb-4 transition-shadow duration-200" data-block-id="{{ $blockId }}" data-block-type="{{ $blockData['type'] }}">
                                     <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
                                         <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
-                                        <span class="flex-grow">{{ config('admin.admin-static-text.' . $blockData['type']) }}</span>
+                                        <span class="flex-grow">{{ config('admin.admin-static-text.' . $blockData['type'], ucfirst($blockData['type'])) }}</span>
                                         <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
                                     </h4>
                                     <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
@@ -184,6 +133,67 @@
             document.querySelectorAll('.lang-section').forEach(section => {
                 section.style.display = section.dataset.lang === langCode ? 'block' : 'none';
             });
+        }
+
+        function addTextBlock(langCode, content = '') {
+            const pageForm = document.querySelector(`#page-form-${langCode}`);
+            if (!pageForm) {
+                console.error(`No element found with ID page-form-${langCode}`);
+                return;
+            }
+
+            const blockId = Date.now().toString();
+            const index = pageForm.querySelectorAll('.accordion').length;
+
+            const wrapper = document.createElement('div');
+            wrapper.classList.add(
+                'accordion',
+                'border', 'border-gray-300',
+                'overflow-hidden',
+                'shadow-sm',
+                'mb-4',
+                'transition-shadow', 'duration-200'
+            );
+            wrapper.setAttribute('data-block-id', blockId);
+            wrapper.setAttribute('data-block-type', 'text');
+
+            wrapper.innerHTML = `
+                <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition" data-toggle>
+                    <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                    <span class="flex-grow">Text</span>
+                    <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                </h4>
+                <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                    <textarea
+                        id="editor_${langCode}_${blockId}"
+                        class="w-full rounded border border-gray-300 p-2"
+                        name="pages[${langCode}][blocks][${blockId}][content]"
+                        rows="10"
+                    >${content}</textarea>
+                    <input
+                        type="hidden"
+                        name="pages[${langCode}][blocks][${blockId}][type]"
+                        value="text"
+                    />
+                </div>
+                <input
+                    type="hidden"
+                    name="pages[${langCode}][blocks_order][${blockId}]"
+                    class="block-order-input"
+                    value="${index}"
+                />
+            `;
+
+            const accordions = pageForm.getElementsByClassName('accordion');
+            const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
+            if (lastAccordion) {
+                lastAccordion.insertAdjacentElement('afterend', wrapper);
+            } else {
+                pageForm.appendChild(wrapper);
+            }
+
+            initAccordionToggle();
+            initSortableForSection(langCode);
         }
 
         function loadHtmlContent(folder, file, langCode) {
@@ -346,12 +356,16 @@
         }
 
         function loadSeoData(langCode) {
-            const seoInputs = document.querySelectorAll('#seo-fields .seo-input');
-            seoInputs.forEach(input => {
-                const tag = input.dataset.tag;
-                input.value = seoData[langCode] && seoData[langCode][tag] ? seoData[langCode][tag] : '';
+            return new Promise((resolve) => {
+                const seoInputs = [];
+                Object.keys(seoData[langCode] || {}).forEach(tag => {
+                    seoInputs.push({
+                        tag,
+                        value: seoData[langCode][tag] || ''
+                    });
+                });
+                resolve(seoInputs);
             });
-            document.getElementById('seo-lang-code').value = langCode;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -374,68 +388,152 @@
 
             showLangSection(defaultLang);
 
-            const contentModal = document.getElementById('content-modal');
             const addContentBtn = document.getElementById('add-content-btn');
-            const cancelContentModalBtn = document.getElementById('cancel-modal');
-            const confirmContentBtn = document.getElementById('confirm-content');
-            const contentTypeButtons = document.querySelectorAll('.content-type-btn');
-            const htmlFileSelect = document.getElementById('html-file-select');
-            const contentBlockSelection = document.getElementById('content-block-selection');
+            const editSeoBtn = document.getElementById('edit-seo-btn');
 
             addContentBtn.addEventListener('click', () => {
-                contentModal.classList.remove('hidden');
-            });
+                Swal.fire({
+                    title: 'Select Content Type',
+                    html: `
+                        <div class="space-y-2">
+                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="html_template">HTML Template</button>
+                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="text">Text</button>
+                        </div>
+                        <div id="content-block-selection" class="mt-4 hidden">
+                            <label class="block font-semibold mb-1">Select HTML Template</label>
+                            <select id="html-file-select" class="border border-gray-300 rounded-md p-2 w-full">
+                                <option value="" disabled selected>Select a template</option>
+                                @foreach ($blockFolders as $folder)
+                    @php
+                        $htmlFiles = collect(File::files(public_path("custom/{$folder}")))
+                            ->filter(fn($file) => $file->getExtension() === 'html')
+                            ->map(fn($file) => $file->getBasename());
+                    @endphp
+                    @foreach ($htmlFiles as $file)
+                    <option value="{{ $folder }}/{{ $file }}">{{ $folder }}/{{ $file }}</option>
+                                    @endforeach
+                    @endforeach
+                    </select>
+                </div>
+                <div id="text-block-selection" class="mt-4 hidden">
+                    <label class="block font-semibold mb-1">Enter Text Content</label>
+                    <textarea id="text-content" class="w-full rounded border border-gray-300 p-2" rows="5"></textarea>
+                </div>
+`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirm',
+                    cancelButtonText: 'Cancel',
+                    focusConfirm: false,
+                    didOpen: () => {
+                        const contentTypeButtons = Swal.getPopup().querySelectorAll('.content-type-btn');
+                        const htmlFileSelect = Swal.getPopup().querySelector('#html-file-select');
+                        const textContent = Swal.getPopup().querySelector('#text-content');
+                        const contentBlockSelection = Swal.getPopup().querySelector('#content-block-selection');
+                        const textBlockSelection = Swal.getPopup().querySelector('#text-block-selection');
+                        const confirmButton = Swal.getConfirmButton();
+                        let selectedType = null;
 
-            cancelContentModalBtn.addEventListener('click', () => {
-                contentModal.classList.add('hidden');
-                contentBlockSelection.classList.add('hidden');
-                htmlFileSelect.value = '';
-                confirmContentBtn.disabled = true;
-            });
+                        contentTypeButtons.forEach(button => {
+                            button.addEventListener('click', () => {
+                                selectedType = button.dataset.type;
+                                contentTypeButtons.forEach(btn => btn.classList.remove('bg-blue-100'));
+                                button.classList.add('bg-blue-100');
 
-            contentTypeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const type = button.dataset.type;
-                    contentTypeButtons.forEach(btn => btn.classList.remove('bg-blue-100'));
-                    button.classList.add('bg-blue-100');
+                                if (selectedType === 'html_template') {
+                                    contentBlockSelection.classList.remove('hidden');
+                                    textBlockSelection.classList.add('hidden');
+                                    htmlFileSelect.focus();
+                                    confirmButton.disabled = !htmlFileSelect.value;
+                                } else if (selectedType === 'text') {
+                                    contentBlockSelection.classList.add('hidden');
+                                    textBlockSelection.classList.remove('hidden');
+                                    textContent.focus();
+                                    confirmButton.disabled = !textContent.value.trim();
+                                }
+                            });
+                        });
 
-                    if (type === 'html_template') {
-                        contentBlockSelection.classList.remove('hidden');
-                        htmlFileSelect.focus();
-                    } else {
-                        contentBlockSelection.classList.add('hidden');
+                        htmlFileSelect.addEventListener('change', () => {
+                            confirmButton.disabled = !htmlFileSelect.value;
+                        });
+
+                        textContent.addEventListener('input', () => {
+                            confirmButton.disabled = selectedType === 'text' && !textContent.value.trim();
+                        });
+                    },
+                    preConfirm: () => {
+                        const htmlFileSelect = Swal.getPopup().querySelector('#html-file-select');
+                        const textContent = Swal.getPopup().querySelector('#text-content');
+                        const selectedButton = Swal.getPopup().querySelector('.content-type-btn.bg-blue-100');
+                        return {
+                            type: selectedButton ? selectedButton.dataset.type : null,
+                            value: selectedButton && selectedButton.dataset.type === 'html_template' ? htmlFileSelect.value : textContent.value
+                        };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value.type) {
+                        if (result.value.type === 'html_template' && result.value.value) {
+                            const [folder, file] = result.value.value.split('/');
+                            loadHtmlContent(folder, file, currentLang);
+                        } else if (result.value.type === 'text') {
+                            addTextBlock(currentLang, result.value.value);
+                        }
                     }
                 });
             });
 
-            htmlFileSelect.addEventListener('change', () => {
-                confirmContentBtn.disabled = !htmlFileSelect.value;
-            });
+            editSeoBtn.addEventListener('click', async () => {
+                const seoInputs = await loadSeoData(currentLang);
+                let inputsHtml = `
+                    <div class="space-y-4 text-left">
+                `;
+                seoInputs.forEach(input => {
+                    inputsHtml += `
+                        <div>
+                            <label class="block font-semibold mb-1 capitalize">${input.tag}</label>
+                            <input
+                                type="text"
+                                class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                data-tag="${input.tag}"
+                                value="${input.value}"
+                            />
+                        </div>
+                    `;
+                });
+                inputsHtml += '</div>';
 
-            confirmContentBtn.addEventListener('click', () => {
-                const selectedFile = htmlFileSelect.value;
-                if (selectedFile) {
-                    const [folder, file] = selectedFile.split('/');
-                    loadHtmlContent(folder, file, currentLang);
-                    contentModal.classList.add('hidden');
-                    contentBlockSelection.classList.add('hidden');
-                    htmlFileSelect.value = '';
-                    confirmContentBtn.disabled = true;
-                    initStaticEditors();
-                }
-            });
+                Swal.fire({
+                    title: 'Edit SEO Tags',
+                    html: inputsHtml,
+                    showCancelButton: true,
+                    confirmButtonText: 'Save SEO',
+                    cancelButtonText: 'Cancel',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const inputs = Swal.getPopup().querySelectorAll('.seo-input');
+                        const hiddenForm = document.getElementById('hidden-seo-form');
+                        const hiddenLangCode = document.getElementById('hidden-seo-lang-code');
 
-            const seoModal = document.getElementById('seo-modal');
-            const editSeoBtn = document.getElementById('edit-seo-btn');
-            const cancelSeoModalBtn = document.getElementById('cancel-seo-modal');
+                        // Clear previous SEO inputs
+                        hiddenForm.querySelectorAll('input[name^="seo"]').forEach(input => input.remove());
 
-            editSeoBtn.addEventListener('click', () => {
-                loadSeoData(currentLang);
-                seoModal.classList.remove('hidden');
-            });
+                        // Set language code
+                        hiddenLangCode.value = currentLang;
 
-            cancelSeoModalBtn.addEventListener('click', () => {
-                seoModal.classList.add('hidden');
+                        // Add SEO inputs
+                        inputs.forEach(input => {
+                            const tag = input.dataset.tag;
+                            const inputElement = document.createElement('input');
+                            inputElement.type = 'hidden';
+                            inputElement.name = `seo[${tag}]`;
+                            inputElement.value = input.value;
+                            hiddenForm.appendChild(inputElement);
+                        });
+
+                        // Submit the hidden form
+                        hiddenForm.submit();
+                    }
+                });
             });
         });
     </script>
