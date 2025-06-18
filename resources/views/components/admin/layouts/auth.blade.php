@@ -47,7 +47,7 @@
                             <div class="flex items-center font-normal">
                                 <div class="mr-3 shrink-0">
                                     <x-admin.avatar class="h-12 w-12">
-                                        <x-admin.avatar.image :src="asset('storage/' . auth()->user()->avatar())" />
+                                        <x-admin.avatar.image :src="asset(auth()->user()->avatar())" />
                                         <x-admin.avatar.fallback :value="acronym(auth()->user()->name)" />
                                     </x-admin.avatar>
                                 </div>
@@ -105,7 +105,7 @@
                         <div class="flex items-center font-normal">
                             <div class="mr-3 shrink-0">
                                 <x-admin.avatar class="h-12 w-12">
-                                    <x-admin.avatar.image :src="asset('storage/' . auth()->user()->avatar())" />
+                                    <x-admin.avatar.image :src="asset(auth()->user()->avatar())" />
                                     <x-admin.avatar.fallback :value="acronym(auth()->user()->name)" />
                                 </x-admin.avatar>
                             </div>

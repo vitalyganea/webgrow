@@ -44,9 +44,9 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function avatar($size = '150'): string
+    public function avatar(): string
     {
-        return $this->avatar ?? 'https://www.gravatar.com/avatar/' . md5($this->email) . '?s=' . $size . '&d=mm';
+        return $this->avatar ? 'storage/' . $this->avatar : 'https://preview.redd.it/how-about-this-give-me-your-roblox-avatar-and-ill-give-them-v0-n97nxd6lllze1.jpeg?auto=webp&s=2b0ba5b9f0955ba8caea3de85608c6e7630f5025';
     }
 
     public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
