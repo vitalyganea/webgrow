@@ -27,6 +27,7 @@ class SeoTagController extends Controller
 
         SeoTag::create([
             'seo_tag' => $request->seo_tag,
+            'tag_format' => $request->tag_format,
         ]);
 
         return redirect()->route('admin.get.seo-tags')->with('success', 'Seo Tag created successfully.');

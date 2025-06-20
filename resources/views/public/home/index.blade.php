@@ -2,28 +2,36 @@
 
 <html>
 <head>
-    <title>Helios by HTML5 UP</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}" />
-    <noscript><link rel="stylesheet" href="{{ asset('assets/css/noscript.css')}}" /></noscript>
+    @if(isset($seoTagsWithValues) && count($seoTagsWithValues))
+        @foreach($seoTagsWithValues as $seoTagsWithValue)
+            {!! $seoTagsWithValue !!}
+    @endforeach
+@endif
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet">
+<!-- Additional CSS Files -->
+<link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css')}}">
+<link rel="stylesheet" href="{{ asset('assets/css/owl.css')}}">
+<link rel="stylesheet" href="{{ asset('assets/css/animated.css')}}">
+<link rel="stylesheet" href="{{ asset('assets/css/main.css')}}">
+<link rel="stylesheet" href="{{ asset('assets/css/fontawesome.css')}}">
 </head>
-<body class="homepage is-preload">
-<div id="page-wrapper">
-    @if(isset($homePage) && $homePage->contents && $homePage->contents->count())
-        @foreach($homePage->contents as $content)
-            {!! $content->content !!}
-        @endforeach
-    @endif
-</div>
-<script src="{{ asset('assets/js/jquery.min.js') }}"></script>
-<script src="{{ asset('assets/js/jquery.dropotron.min.js') }}"></script>
-<script src="{{ asset('assets/js/jquery.scrolly.min.js') }}"></script>
-<script src="{{ asset('assets/js/jquery.scrollex.min.js') }}"></script>
-<script src="{{ asset('assets/js/browser.min.js') }}"></script>
-<script src="{{ asset('assets/js/breakpoints.min.js') }}"></script>
-<script src="{{ asset('assets/js/util.js') }}"></script>
-<script src="{{ asset('assets/js/main.js') }}"></script>
+<body>
 
+
+@if(isset($homePage) && $homePage->contents && $homePage->contents->count())
+    @foreach($homePage->contents as $content)
+        {!! $content->content !!}
+    @endforeach
+@endif
+
+
+<script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('assets/js/owl-carousel.js') }}"></script>
+<script src="{{ asset('assets/js/animation.js') }}"></script>
+<script src="{{ asset('assets/js/imagesloaded.js') }}"></script>
+<script src="{{ asset('assets/js/templatemo-custom.js') }}"></script>
 </body>
 </html>

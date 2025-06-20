@@ -30,3 +30,10 @@ This project has come with some features like:
 -   2
 -   3
 -   4
+
+To do:
+
+menu generator
+public user routing
+gallery generator
+robots.txt generator

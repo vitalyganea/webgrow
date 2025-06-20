@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\SeoTagController;
 use Illuminate\Support\Facades\Route;
@@ -92,7 +93,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('seo-tags/{seoTag}', [SeoTagController::class, 'destroy'])->name('delete.seo-tag');
 
 
-
+        Route::post('upload-image', [ImageUploadController::class, 'upload'])->name('upload.image');
         Route::get('blocks/{folder}', function ($folder) {
             $basePath = public_path("custom/{$folder}");
 

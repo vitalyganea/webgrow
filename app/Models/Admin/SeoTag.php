@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SeoTag extends Model
 {
-    protected $fillable = ['seo_tag'];
+    protected $fillable = ['seo_tag', 'tag_format'];
 
     use HasFactory;
 }

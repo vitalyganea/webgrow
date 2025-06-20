@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -11,14 +12,30 @@ return new class extends Migration
     {
         Schema::create('seo_tags', function (Blueprint $table) {
             $table->id();
-            $table->text('seo_tag');
+            $table->string('seo_tag', 50)->unique();
+            $table->text('tag_format')->nullable();
             $table->timestamps();
         });
 
         DB::table('seo_tags')->insert([
-            ['seo_tag' => 'title', 'created_at' => now(), 'updated_at' => now()],
-            ['seo_tag' => 'description', 'created_at' => now(), 'updated_at' => now()],
-            ['seo_tag' => 'keywords', 'created_at' => now(), 'updated_at' => now()],
+            [
+                'seo_tag' => 'title',
+                'tag_format' => null, // Explicitly set to null for clarity
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'description',
+                'tag_format' => '<meta name="description" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'keywords',
+                'tag_format' => '<meta name="keywords" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
         ]);
     }
 

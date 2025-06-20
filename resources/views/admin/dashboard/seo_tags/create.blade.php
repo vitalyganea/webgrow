@@ -26,6 +26,19 @@
                     <x-admin.input-error class="mt-2" :messages="$errors->get('seo_tag')" />
                 </div>
 
+                <div>
+                    <x-admin.label for="tag_format" value="SEO Tag format" />
+                    <x-admin.input
+                        id="tag_format"
+                        name="tag_format"
+                        type="text"
+                        class="mt-1 block w-full"
+                        value="{{ old('tag_format') }}"
+                        required
+                    />
+                    <x-admin.input-error class="mt-2" :messages="$errors->get('tag_format')" />
+                </div>
+
                 <div class="mt-6 flex items-center gap-4">
                     <x-admin.button>Create SEO Tag</x-admin.button>
                     <x-admin.action-message status="seo-tag-created" />

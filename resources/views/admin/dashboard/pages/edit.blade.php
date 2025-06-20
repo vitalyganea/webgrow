@@ -127,7 +127,15 @@
         const seoData = {!! $seoDataJson !!};
         const defaultLang = @json($defaultLang);
         const groupId = @json($group_id);
-        let globalCssFiles = '/custom/home/assets/css/main.css';
+
+        const globalCssFiles = @json(
+            collect(File::files(public_path('assets/css')))
+                ->filter(fn($file) => $file->getExtension() === 'css')
+                ->map(fn($file) => '/assets/css/' . $file->getBasename())
+                ->values()
+                ->toArray()
+        );
+
 
         function showLangSection(langCode) {
             document.querySelectorAll('.lang-section').forEach(section => {
@@ -291,6 +299,49 @@
                             toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
                             autoresize_bottom_margin: 10,
+                            // Enable automatic uploads of images
+                            automatic_uploads: true,
+                            // Specify allowed image file types
+                            images_file_types: 'jpg,jpeg,png,gif,webp',
+                            // Custom image upload handler
+                            images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
+                                const xhr = new XMLHttpRequest();
+                                xhr.open('POST', '/admin/upload-image', true); // Laravel endpoint with admin prefix
+                                // Include CSRF token for Laravel
+                                xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+
+                                // Update progress
+                                xhr.upload.onprogress = (e) => {
+                                    if (e.lengthComputable) {
+                                        progress((e.loaded / e.total) * 100);
+                                    }
+                                };
+
+                                xhr.onload = () => {
+                                    if (xhr.status === 200) {
+                                        try {
+                                            const json = JSON.parse(xhr.responseText);
+                                            if (json && typeof json.location === 'string') {
+                                                resolve(json.location); // Return the URL of the uploaded image
+                                            } else {
+                                                reject('Invalid JSON response: ' + xhr.responseText);
+                                            }
+                                        } catch (e) {
+                                            reject('Error parsing JSON: ' + e);
+                                        }
+                                    } else {
+                                        reject('HTTP Error: ' + xhr.status);
+                                    }
+                                };
+
+                                xhr.onerror = () => {
+                                    reject('Image upload failed due to a network error.');
+                                };
+
+                                const formData = new FormData();
+                                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                                xhr.send(formData);
+                            }),
                             setup: editor => {
                                 editor.on('change', () => editor.save());
                             }
