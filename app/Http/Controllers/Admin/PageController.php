@@ -218,7 +218,8 @@ class PageController extends Controller
 
         foreach ($seoData as $tag => $value) {
             $seoTag = SeoTag::where('seo_tag', $tag)->first();
-            if ($seoTag) {
+
+            if ($seoTag && !is_null($value)) {
                 PageSeo::updateOrCreate(
                     [
                         'page_group_id' => $group_id,

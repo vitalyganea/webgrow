@@ -194,10 +194,13 @@
 
             const accordions = pageForm.getElementsByClassName('accordion');
             const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
+
             if (lastAccordion) {
                 lastAccordion.insertAdjacentElement('afterend', wrapper);
             } else {
-                pageForm.appendChild(wrapper);
+                const saveButtonContainer = document.getElementById(`save-button-container-${langCode}`);
+                console.log(saveButtonContainer);
+                pageForm.insertBefore(wrapper, saveButtonContainer);
             }
 
             initAccordionToggle();
@@ -259,10 +262,13 @@
 
                     const accordions = pageForm.getElementsByClassName('accordion');
                     const lastAccordion = accordions.length > 0 ? accordions[accordions.length - 1] : null;
+
                     if (lastAccordion) {
                         lastAccordion.insertAdjacentElement('afterend', wrapper);
                     } else {
-                        pageForm.appendChild(wrapper);
+                        const saveButtonContainer = document.getElementById(`save-button-container-${langCode}`);
+                        console.log(saveButtonContainer);
+                        pageForm.insertBefore(wrapper, saveButtonContainer);
                     }
 
                     setTimeout(() => {
