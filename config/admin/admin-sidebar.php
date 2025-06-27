@@ -26,7 +26,12 @@ return [
         'icon' => 'fas fa-bars',
         'active_routes' => ['admin.get.seo-tags', 'admin.create.seo-tag', 'admin.edit.seo-tag'],
     ],
-
+    [
+        'label' => 'Backup Content',
+        'route' => 'admin.get.content-backup',
+        'icon' => 'fa fa-database',
+        'active_routes' => ['admin.get.content-backup', 'admin.create.content-backup', 'admin.restore.content-backup'],
+    ],
     [
         'label' => 'Settings',
         'route' => 'admin.settings.account',

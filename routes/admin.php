@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ContentBackupController;
 use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\SeoTagController;
@@ -92,6 +93,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('seo-tags/{seoTag}', [SeoTagController::class, 'update'])->name('update.seo-tag');
         Route::delete('seo-tags/{seoTag}', [SeoTagController::class, 'destroy'])->name('delete.seo-tag');
 
+        Route::get('content-backup', [ContentBackupController::class, 'index'])->name('get.content-backup');
+        Route::post('content-backup/create', [ContentBackupController::class, 'create'])->name('create.content-backup');
+        Route::post('content-backup/restore', [ContentBackupController::class, 'restore'])->name('restore.content-backup');
+        Route::delete('content-backup/{id}', [ContentBackupController::class, 'destroy'])->name('delete.content-backup');
 
         Route::post('upload-image', [ImageUploadController::class, 'upload'])->name('upload.image');
         Route::get('blocks/{folder}', function ($folder) {
