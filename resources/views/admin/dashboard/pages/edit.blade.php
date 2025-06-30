@@ -132,6 +132,7 @@
             collect(File::files(public_path('assets/css')))
                 ->filter(fn($file) => $file->getExtension() === 'css')
                 ->map(fn($file) => '/assets/css/' . $file->getBasename())
+                ->prepend('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css')
                 ->values()
                 ->toArray()
         );
@@ -278,6 +279,7 @@
                             toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
                             autoresize_bottom_margin: 10,
+                            extended_valid_elements: 'i[class|style],span[class|style]',
                             setup: editor => {
                                 editor.on('change', () => editor.save());
                             }
@@ -304,6 +306,7 @@
                             plugins: 'fullscreen link image code lists autoresize advcolor',
                             toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
+                            extended_valid_elements: 'i[class|style],span[class|style]',
                             autoresize_bottom_margin: 10,
                             // Enable automatic uploads of images
                             automatic_uploads: true,

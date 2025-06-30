@@ -7,15 +7,13 @@
             {!! $seoTagsWithValue !!}
     @endforeach
 @endif
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet">
-<!-- Additional CSS Files -->
-<link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css')}}">
-<link rel="stylesheet" href="{{ asset('assets/css/owl.css')}}">
-<link rel="stylesheet" href="{{ asset('assets/css/animated.css')}}">
+<link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{{ asset('assets/css/main.css')}}">
-<link rel="stylesheet" href="{{ asset('assets/css/fontawesome.css')}}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
 </head>
 <body>
 
@@ -26,12 +24,14 @@
     @endforeach
 @endif
 
+<a href="#top" class="back-top-btn" aria-label="înapoi sus" data-back-top-btn>
+    <ion-icon name="caret-up" aria-hidden="true"></ion-icon>
+</a>
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
-<script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-<script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('assets/js/owl-carousel.js') }}"></script>
-<script src="{{ asset('assets/js/animation.js') }}"></script>
-<script src="{{ asset('assets/js/imagesloaded.js') }}"></script>
-<script src="{{ asset('assets/js/templatemo-custom.js') }}"></script>
+
+<script src="{{ asset('assets/js/script.js') }}"></script>
+
 </body>
 </html>
