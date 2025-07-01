@@ -36,6 +36,54 @@ return new class extends Migration
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
+            [
+                'seo_tag' => 'author',
+                'tag_format' => '<meta name="author" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'viewport',
+                'tag_format' => '<meta name="viewport" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'robots',
+                'tag_format' => '<meta name="robots" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'og:title',
+                'tag_format' => '<meta property="og:title" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'og:description',
+                'tag_format' => '<meta property="og:description" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'og:image',
+                'tag_format' => '<meta property="og:image" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'twitter:card',
+                'tag_format' => '<meta name="twitter:card" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'seo_tag' => 'twitter:title',
+                'tag_format' => '<meta name="twitter:title" content="{{value}}">',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]
         ]);
     }
 

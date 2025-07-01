@@ -35,11 +35,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.form-to-send');
         // CSRF token injected from Laravel
         const csrfToken = '{{ csrf_token() }}';
 
-        if (form) {
+        // Select all forms with the class 'form-to-send'
+        const forms = document.querySelectorAll('.form-to-send');
+
+        forms.forEach(form => {
             form.addEventListener('submit', async function(event) {
                 event.preventDefault();
 
@@ -69,7 +71,7 @@
                     if (response.ok) {
                         // Success handling
                         alert('Mesajul a fost trimis cu succes!');
-                        form.reset(); // Clear the form
+                        form.reset(); // Clear the specific form
                     } else {
                         // Error handling
                         alert(result.message || 'A apărut o eroare la trimiterea mesajului.');
@@ -79,7 +81,7 @@
                     alert('A apărut o eroare la trimiterea mesajului.');
                 }
             });
-        }
+        });
     });
 </script>
 </body>
