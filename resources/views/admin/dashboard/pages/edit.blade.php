@@ -61,6 +61,7 @@
                         @method('PUT')
 
                         <input type="hidden" name="pages[{{ $language->code }}][language_code]" value="{{ $language->code }}" />
+                        <input type="hidden" name="pages[{{ $language->code }}][deleted_blocks][]" class="deleted-blocks-input" value="" />
 
                         <div>
                             <x-admin.label for="title_{{ $language->code }}" value="Title" />
@@ -92,7 +93,12 @@
                                     <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
                                         <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
                                         <span class="flex-grow">{{ config('admin.admin-static-text.' . $blockData['type'], ucfirst($blockData['type'])) }}</span>
-                                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                                        <div class="flex items-center space-x-2">
+                                            <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                                            <button type="button" class="delete-block-btn text-red-500 hover:text-red-700" data-block-id="{{ $blockId }}" data-lang="{{ $language->code }}">
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
                                     </h4>
                                     <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
                                         @if($blockData['type'] === 'html_template')
@@ -137,7 +143,6 @@
                 ->toArray()
         );
 
-
         function showLangSection(langCode) {
             document.querySelectorAll('.lang-section').forEach(section => {
                 section.style.display = section.dataset.lang === langCode ? 'block' : 'none';
@@ -167,10 +172,15 @@
             wrapper.setAttribute('data-block-type', 'text');
 
             wrapper.innerHTML = `
-                <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition" data-toggle>
+                <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
                     <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
                     <span class="flex-grow">Text</span>
-                    <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                        <button type="button" class="delete-block-btn text-red-500 hover:text-red-700" data-block-id="${blockId}" data-lang="${langCode}">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </h4>
                 <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
                     <textarea
@@ -200,11 +210,11 @@
                 lastAccordion.insertAdjacentElement('afterend', wrapper);
             } else {
                 const saveButtonContainer = document.getElementById(`save-button-container-${langCode}`);
-                console.log(saveButtonContainer);
                 pageForm.insertBefore(wrapper, saveButtonContainer);
             }
 
             initAccordionToggle();
+            initDeleteButtons();
             initSortableForSection(langCode);
         }
 
@@ -235,10 +245,15 @@
                     wrapper.setAttribute('data-block-type', 'html_template');
 
                     wrapper.innerHTML = `
-                        <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition" data-toggle>
+                        <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
                             <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
                             <span class="flex-grow">{{ config('admin.admin-static-text.html_template') }}</span>
-                            <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
+                                <button type="button" class="delete-block-btn text-red-500 hover:text-red-700" data-block-id="${blockId}" data-lang="${langCode}">
+                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </h4>
                         <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
                             <textarea
@@ -268,7 +283,6 @@
                         lastAccordion.insertAdjacentElement('afterend', wrapper);
                     } else {
                         const saveButtonContainer = document.getElementById(`save-button-container-${langCode}`);
-                        console.log(saveButtonContainer);
                         pageForm.insertBefore(wrapper, saveButtonContainer);
                     }
 
@@ -279,13 +293,14 @@
                             toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
                             autoresize_bottom_margin: 10,
-                            extended_valid_elements: 'i[class|style],span[class|style]',
+                            valid_elements: '*[*]',
                             setup: editor => {
                                 editor.on('change', () => editor.save());
                             }
                         });
                         initAccordionToggle();
                         initStaticEditors();
+                        initDeleteButtons();
                         initSortableForSection(langCode);
                     }, 200);
                 })
@@ -306,20 +321,14 @@
                             plugins: 'fullscreen link image code lists autoresize advcolor',
                             toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
-                            extended_valid_elements: 'i[class|style],span[class|style]',
                             autoresize_bottom_margin: 10,
-                            // Enable automatic uploads of images
-                            automatic_uploads: true,
-                            // Specify allowed image file types
+                            valid_elements: '*[*]',                            automatic_uploads: true,
                             images_file_types: 'jpg,jpeg,png,gif,webp',
-                            // Custom image upload handler
                             images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
                                 const xhr = new XMLHttpRequest();
-                                xhr.open('POST', '/admin/upload-image', true); // Laravel endpoint with admin prefix
-                                // Include CSRF token for Laravel
+                                xhr.open('POST', '/admin/upload-image', true);
                                 xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
 
-                                // Update progress
                                 xhr.upload.onprogress = (e) => {
                                     if (e.lengthComputable) {
                                         progress((e.loaded / e.total) * 100);
@@ -331,7 +340,7 @@
                                         try {
                                             const json = JSON.parse(xhr.responseText);
                                             if (json && typeof json.location === 'string') {
-                                                resolve(json.location); // Return the URL of the uploaded image
+                                                resolve(json.location);
                                             } else {
                                                 reject('Invalid JSON response: ' + xhr.responseText);
                                             }
@@ -369,6 +378,9 @@
 
         function toggleAccordion(event) {
             const header = event.currentTarget;
+            if (event.target.classList.contains('delete-block-btn') || event.target.closest('.delete-block-btn')) {
+                return;
+            }
             const body = header.nextElementSibling;
             const arrow = header.querySelector('.arrow');
             const isOpen = !body.classList.contains('hidden');
@@ -415,6 +427,74 @@
             });
         }
 
+        function initDeleteButtons() {
+            document.querySelectorAll('.delete-block-btn').forEach(button => {
+                button.removeEventListener('click', handleDeleteBlock);
+                button.addEventListener('click', handleDeleteBlock);
+            });
+        }
+
+        function handleDeleteBlock(event) {
+            const button = event.currentTarget;
+            const blockId = button.dataset.blockId;
+            const langCode = button.dataset.lang;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'This will delete the content block. This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#d33',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const accordion = button.closest('.accordion');
+                    if (accordion) {
+                        // Remove TinyMCE editor if it exists
+                        const textarea = accordion.querySelector('textarea');
+                        if (textarea && accordion.dataset.blockType === 'html_template') {
+                            const editor = tinymce.get(textarea.id);
+                            if (editor) {
+                                editor.remove();
+                            }
+                        }
+
+                        // Check if blockId is numeric (indicating a database block)
+                        if (!isNaN(blockId)) {
+                            const form = document.querySelector(`#page-form-${langCode}`);
+                            let deletedBlocksInput = form.querySelector(`input[name="pages[${langCode}][deleted_blocks][]"]`);
+                            if (!deletedBlocksInput) {
+                                deletedBlocksInput = document.createElement('input');
+                                deletedBlocksInput.type = 'hidden';
+                                deletedBlocksInput.name = `pages[${langCode}][deleted_blocks][]`;
+                                form.appendChild(deletedBlocksInput);
+                            }
+                            deletedBlocksInput.value = blockId;
+                        }
+
+                        accordion.remove();
+
+                        // Update block order inputs
+                        const langSection = document.querySelector(`.lang-section[data-lang="${langCode}"]`);
+                        const accordions = langSection.querySelectorAll('.accordion');
+                        accordions.forEach((acc, index) => {
+                            const input = acc.querySelector('.block-order-input');
+                            if (input) input.value = index;
+                        });
+
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'The content block has been removed.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false,
+                        });
+                    }
+                }
+            });
+        }
+
         function loadSeoData(langCode) {
             return new Promise((resolve) => {
                 const seoInputs = [];
@@ -432,6 +512,7 @@
             initStaticEditors();
             initAccordionToggle();
             initSortable();
+            initDeleteButtons();
 
             let currentLang = defaultLang;
 
@@ -574,13 +655,9 @@
                         const hiddenForm = document.getElementById('hidden-seo-form');
                         const hiddenLangCode = document.getElementById('hidden-seo-lang-code');
 
-                        // Clear previous SEO inputs
                         hiddenForm.querySelectorAll('input[name^="seo"]').forEach(input => input.remove());
-
-                        // Set language code
                         hiddenLangCode.value = currentLang;
 
-                        // Add SEO inputs
                         inputs.forEach(input => {
                             const tag = input.dataset.tag;
                             const inputElement = document.createElement('input');
@@ -590,7 +667,6 @@
                             hiddenForm.appendChild(inputElement);
                         });
 
-                        // Submit the hidden form
                         hiddenForm.submit();
                     }
                 });

@@ -1,3 +1,4 @@
+@php use App\Models\Admin\FormRequest; @endphp
 <x-admin.index title="Dashboard">
     <div class="min-h-screen relative" x-data="{ mobileMenuOpen: false }">
         <!-- Fixed desktop theme toggle -->
@@ -66,6 +67,20 @@
                                 @click="mobileMenuOpen = false">
                                 <i class="{{$item['icon']}} mr-2"></i>
                                 {{$item['label']}}
+                                @if(isset($item['count']))
+                                    @if($item['count'] ==='form_requests')
+
+                                        @php
+                                            $formRequestsCount = FormRequest::where('seen', 0)->count();
+                                        @endphp
+
+                                        @if($formRequestsCount > 0)
+                                            <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-primary text-primary-foreground">
+                                            {{ $formRequestsCount }}
+                                        </span>
+                                        @endif
+                                    @endif
+                                @endif
                             </x-admin.aside.link>
                         @endforeach
                         <x-admin.separator />
@@ -121,8 +136,24 @@
                         <x-admin.aside.link
                             :href="route($item['route'])"
                             :active="request()->routeIs($item['active_routes'])">
-                            <i class="{{$item['icon']}} mr-2"></i>
-                            {{$item['label']}}
+                            <div class="flex items-center">
+                                <i class="{{$item['icon']}} mr-2"></i>
+                                <span>{{$item['label']}}</span>
+                                @if(isset($item['count']))
+                                    @if($item['count'] ==='form_requests')
+
+                                        @php
+                                            $formRequestsCount = FormRequest::where('seen', 0)->count();
+                                        @endphp
+
+                                    @if($formRequestsCount > 0)
+                                        <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-primary text-primary-foreground">
+                                            {{ $formRequestsCount }}
+                                        </span>
+                                    @endif
+                                    @endif
+                                @endif
+                            </div>
                         </x-admin.aside.link>
                     @endforeach
                     <x-admin.separator />
@@ -136,7 +167,6 @@
                     </form>
                 </ul>
             </aside>
-
             <main class="w-full">
                 @isset($header)
                     <header class="flex items-center justify-between border-b border-r bg-card px-6 py-4 sm:px-8 sm:py-6">

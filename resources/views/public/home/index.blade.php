@@ -33,5 +33,54 @@
 
 <script src="{{ asset('assets/js/script.js') }}"></script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.form-to-send');
+        // CSRF token injected from Laravel
+        const csrfToken = '{{ csrf_token() }}';
+
+        if (form) {
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                // Collect all form data dynamically
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                // Add the current URL to the data object
+                data.currentUrl = window.location.href;
+
+                try {
+                    const response = await fetch('/post-form', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        // Success handling
+                        alert('Mesajul a fost trimis cu succes!');
+                        form.reset(); // Clear the form
+                    } else {
+                        // Error handling
+                        alert(result.message || 'A apărut o eroare la trimiterea mesajului.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('A apărut o eroare la trimiterea mesajului.');
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

@@ -119,14 +119,15 @@ class PageController extends Controller
             'pages.*.language_code' => 'required|string|exists:languages,code',
             'pages.*.blocks' => 'nullable|array',
             'pages.*.blocks.*.content' => 'nullable|string',
-            'pages.*.blocks.*.type' => 'required|string', // Add other types in the future
+            'pages.*.blocks.*.type' => 'required|string',
             'pages.*.blocks_order' => 'nullable|array',
             'pages.*.blocks_order.*' => 'nullable|integer',
+            'pages.*.deleted_blocks' => 'nullable|array',
+            'pages.*.deleted_blocks.*' => 'nullable|integer|exists:page_contents,id',
         ]);
 
         // Fetch existing pages for the group_id
         $existingPages = Page::where('group_id', $group_id)->get()->keyBy('language');
-
 
         foreach ($data['pages'] as $languageCode => $pageData) {
             $page = $existingPages[$languageCode] ?? null;
@@ -152,6 +153,15 @@ class PageController extends Controller
                     'language' => $languageCode,
                     'group_id' => $group_id,
                 ]);
+            }
+
+            // Handle deleted blocks
+            if (!empty($pageData['deleted_blocks']) && is_array($pageData['deleted_blocks'])) {
+                foreach ($pageData['deleted_blocks'] as $blockId) {
+                    if ($blockId) {
+                        $page->contents()->where('id', $blockId)->delete();
+                    }
+                }
             }
 
             // Save blocks content and order
@@ -184,9 +194,9 @@ class PageController extends Controller
                 }
             }
         }
+
         return redirect()->route('admin.edit.page', $group_id)->with('success', 'Page updated.');
     }
-
     public function destroy($pagesGroupId)
     {
         // Get all pages by group_id

@@ -19,18 +19,18 @@ return [
         'icon' => 'fas fa-tags',
         'active_routes' => ['admin.get.seo-tags', 'admin.create.seo-tag', 'admin.edit.seo-tag'],
     ],
-
-    [
-        'label' => 'Website Menu',
-        'route' => 'admin.get.seo-tags',
-        'icon' => 'fas fa-bars',
-        'active_routes' => ['admin.get.seo-tags', 'admin.create.seo-tag', 'admin.edit.seo-tag'],
-    ],
     [
         'label' => 'Backup Content',
         'route' => 'admin.get.content-backup',
         'icon' => 'fa fa-database',
         'active_routes' => ['admin.get.content-backup', 'admin.create.content-backup', 'admin.restore.content-backup'],
+    ],
+    [
+        'label' => 'Form Requests',
+        'route' => 'admin.get.form-requests',
+        'icon' => 'fas fa-comments',
+        'active_routes' => ['admin.get.form-requests'],
+        'count' => 'form_requests',
     ],
     [
         'label' => 'Settings',

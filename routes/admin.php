@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ContentBackupController;
 use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\SeoTagController;
+use App\Http\Controllers\Admin\FormController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AccountController;
 use App\Http\Controllers\Admin\Auth\DangerController;
@@ -99,6 +100,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('content-backup/{id}', [ContentBackupController::class, 'destroy'])->name('delete.content-backup');
 
         Route::post('upload-image', [ImageUploadController::class, 'upload'])->name('upload.image');
+
+        Route::get('form-requests', [FormController::class, 'index'])->name('get.form-requests');
+        Route::delete('form-requests/{formRequest}', [FormController::class, 'destroy'])->name('delete.form-request');
+        Route::post('form-requests/{id}/mark-seen', [FormController::class, 'markSeen'])->name('mark-seen.form-request');
         Route::get('blocks/{folder}', function ($folder) {
             $basePath = public_path("custom/{$folder}");
 
