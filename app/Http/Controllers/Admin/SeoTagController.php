@@ -22,20 +22,15 @@ class SeoTagController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'seo_tag' => 'required|string',
+            'seo_tag' => 'required|string|max:50|unique:seo_tags',
+            'type' => 'required|in:text,image',
+            'tag_format' => 'required|string',
         ]);
 
-        SeoTag::create([
-            'seo_tag' => $request->seo_tag,
-            'tag_format' => $request->tag_format,
-        ]);
+        SeoTag::create($request->all());
 
-        return redirect()->route('admin.get.seo-tags')->with('success', 'Seo Tag created successfully.');
-    }
-
-    public function show(string $id)
-    {
-        //
+        return redirect()->route('admin.seo_tags.index')
+            ->with('success', 'SEO Tag created successfully.');
     }
 
     public function edit(SeoTag $seoTag)
@@ -45,18 +40,23 @@ class SeoTagController extends Controller
 
     public function update(Request $request, SeoTag $seoTag)
     {
-        $validatedData = $request->validate([
-            'seo_tag' => 'required|string',
+        $request->validate([
+            'seo_tag' => 'required|string|max:50|unique:seo_tags,seo_tag,' . $seoTag->id,
+            'type' => 'required|in:text,image',
+            'tag_format' => 'required|string',
         ]);
 
-        $seoTag->update($validatedData);
-        return redirect()->route('admin.get.seo-tags')->with('success', 'Seo Tag updated successfully.');
+        $seoTag->update($request->all());
 
+        return redirect()->route('admin.seo_tags.index')
+            ->with('success', 'SEO Tag updated successfully.');
     }
 
     public function destroy(SeoTag $seoTag)
     {
         $seoTag->delete();
-        return redirect()->route('admin.get.seo-tags')->with('success', 'Seo Tag deleted successfully.');
+
+        return redirect()->route('admin.seo_tags.index')
+            ->with('success', 'SEO Tag deleted successfully.');
     }
 }

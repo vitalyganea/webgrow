@@ -8,6 +8,7 @@
     $defaultLang = $languages->first()->code ?? '';
     $pagesJson = json_encode($pages ?? []);
     $seoDataJson = json_encode($seoData ?? []);
+    $seoTagsJson = json_encode($seoTags ?? []);
 @endphp
 
 <x-admin.layouts.auth title="Edit Page">
@@ -49,7 +50,7 @@
                 </div>
 
                 <!-- Hidden SEO Form -->
-                <form method="POST" action="{{ route('admin.update.seo', $group_id) }}" id="hidden-seo-form" class="hidden">
+                <form method="POST" action="{{ route('admin.update.seo', $group_id) }}" id="hidden-seo-form" class="hidden" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="language_code" id="hidden-seo-lang-code" />
                     <!-- SEO inputs will be dynamically added here -->
@@ -133,6 +134,7 @@
         const languages = @json($languagesArray);
         const oldPages = {!! $pagesJson !!};
         const seoData = {!! $seoDataJson !!};
+        const seoTags = {!! $seoTagsJson !!};
         const defaultLang = @json($defaultLang);
         const groupId = @json($group_id);
 
@@ -508,12 +510,39 @@
             return new Promise((resolve) => {
                 const seoInputs = [];
                 Object.keys(seoData[langCode] || {}).forEach(tag => {
+                    const seoTag = seoTags.find(t => t.seo_tag === tag);
                     seoInputs.push({
                         tag,
-                        value: seoData[langCode][tag] || ''
+                        value: seoData[langCode][tag] || '',
+                        type: seoTag ? seoTag.type : 'text'
                     });
                 });
                 resolve(seoInputs);
+            });
+        }
+
+        function uploadSeoImage(file, tag) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('tag', tag);
+
+                fetch('/admin/upload-seo-image', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.location) {
+                            resolve(data.location);
+                        } else {
+                            reject('Failed to upload image');
+                        }
+                    })
+                    .catch(error => reject(error));
             });
         }
 
@@ -638,17 +667,41 @@
                     <div class="space-y-4 text-left">
                 `;
                 seoInputs.forEach(input => {
-                    inputsHtml += `
-                        <div>
-                            <label class="block font-semibold mb-1 capitalize">${input.tag}</label>
-                            <input
-                                type="text"
-                                class="seo-input border border-gray-300 rounded-md p-2 w-full"
-                                data-tag="${input.tag}"
-                                value="${input.value}"
-                            />
-                        </div>
-                    `;
+                    if (input.type === 'image') {
+                        inputsHtml += `
+                            <div>
+                                <label class="block font-semibold mb-1 capitalize">${input.tag}</label>
+                                <div class="space-y-2">
+                                    <input
+                                        type="file"
+                                        class="seo-image-input border border-gray-300 rounded-md p-2 w-full"
+                                        data-tag="${input.tag}"
+                                        accept="image/*"
+                                    />
+                                    <input
+                                        type="text"
+                                        class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                        data-tag="${input.tag}"
+                                        value="${input.value}"
+                                        placeholder="Or enter image URL"
+                                    />
+                                    ${input.value ? `<img src="${input.value}" alt="${input.tag}" class="max-w-xs max-h-24 object-cover rounded">` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        inputsHtml += `
+                            <div>
+                                <label class="block font-semibold mb-1 capitalize">${input.tag}</label>
+                                <input
+                                    type="text"
+                                    class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                    data-tag="${input.tag}"
+                                    value="${input.value}"
+                                />
+                            </div>
+                        `;
+                    }
                 });
                 inputsHtml += '</div>';
 
@@ -659,12 +712,51 @@
                     confirmButtonText: 'Save SEO',
                     cancelButtonText: 'Cancel',
                     focusConfirm: false,
+                    didOpen: () => {
+                        // Handle image file selection
+                        const imageInputs = Swal.getPopup().querySelectorAll('.seo-image-input');
+                        imageInputs.forEach(input => {
+                            input.addEventListener('change', async (e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    const tag = e.target.dataset.tag;
+                                    const textInput = Swal.getPopup().querySelector(`.seo-input[data-tag="${tag}"]`);
+
+                                    try {
+                                        const url = await uploadSeoImage(file, tag);
+                                        textInput.value = url;
+
+                                        // Update preview image
+                                        const existingImg = e.target.parentElement.querySelector('img');
+                                        if (existingImg) {
+                                            existingImg.src = url;
+                                        } else {
+                                            const img = document.createElement('img');
+                                            img.src = url;
+                                            img.alt = tag;
+                                            img.className = 'max-w-xs max-h-24 object-cover rounded mt-2';
+                                            e.target.parentElement.appendChild(img);
+                                        }
+                                    } catch (error) {
+                                        console.error('Error uploading image:', error);
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Upload Failed',
+                                            text: 'Failed to upload image. Please try again.'
+                                        });
+                                    }
+                                }
+                            });
+                        });
+                    },
                     preConfirm: () => {
                         const inputs = Swal.getPopup().querySelectorAll('.seo-input');
+                        const imageInputs = Swal.getPopup().querySelectorAll('.seo-image-input');
                         const hiddenForm = document.getElementById('hidden-seo-form');
                         const hiddenLangCode = document.getElementById('hidden-seo-lang-code');
 
                         hiddenForm.querySelectorAll('input[name^="seo"]').forEach(input => input.remove());
+                        hiddenForm.querySelectorAll('input[name^="seo_images"]').forEach(input => input.remove());
                         hiddenLangCode.value = currentLang;
 
                         inputs.forEach(input => {
@@ -674,6 +766,18 @@
                             inputElement.name = `seo[${tag}]`;
                             inputElement.value = input.value;
                             hiddenForm.appendChild(inputElement);
+                        });
+
+                        imageInputs.forEach(input => {
+                            if (input.files && input.files[0]) {
+                                const tag = input.dataset.tag;
+                                const fileInput = document.createElement('input');
+                                fileInput.type = 'file';
+                                fileInput.name = `seo_images[${tag}]`;
+                                fileInput.style.display = 'none';
+                                fileInput.files = input.files;
+                                hiddenForm.appendChild(fileInput);
+                            }
                         });
 
                         hiddenForm.submit();

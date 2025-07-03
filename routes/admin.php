@@ -93,6 +93,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('seo-tags/{seoTag}/edit', [SeoTagController::class, 'edit'])->name('edit.seo-tag');
         Route::put('seo-tags/{seoTag}', [SeoTagController::class, 'update'])->name('update.seo-tag');
         Route::delete('seo-tags/{seoTag}', [SeoTagController::class, 'destroy'])->name('delete.seo-tag');
+        Route::post('upload-seo-image', [PageController::class, 'uploadSeoImage'])->name('upload-seo-image');
 
         Route::get('content-backup', [ContentBackupController::class, 'index'])->name('get.content-backup');
         Route::post('content-backup/create', [ContentBackupController::class, 'create'])->name('create.content-backup');

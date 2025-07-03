@@ -27,7 +27,22 @@
                     <x-admin.input-error class="mt-2" :messages="$errors->get('seo_tag')" />
                 </div>
 
-                <div>
+                <div class="mt-4">
+                    <x-admin.label for="type" value="SEO Tag Type" />
+                    <select
+                        id="type"
+                        name="type"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        required
+                    >
+                        <option value="">Select Type</option>
+                        <option value="text" {{ old('type', $seoTag->type) == 'text' ? 'selected' : '' }}>Text</option>
+                        <option value="image" {{ old('type', $seoTag->type) == 'image' ? 'selected' : '' }}>Image</option>
+                    </select>
+                    <x-admin.input-error class="mt-2" :messages="$errors->get('type')" />
+                </div>
+
+                <div class="mt-4">
                     <x-admin.label for="tag_format" value="SEO Tag format" />
                     <x-admin.input
                         id="tag_format"

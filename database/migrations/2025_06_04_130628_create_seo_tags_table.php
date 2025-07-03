@@ -14,6 +14,7 @@ return new class extends Migration
             $table->id();
             $table->string('seo_tag', 50)->unique();
             $table->text('tag_format')->nullable();
+            $table->enum('type', ['text', 'image'])->default('text')->after('seo_tag');
             $table->timestamps();
         });
 
@@ -71,6 +72,7 @@ return new class extends Migration
                 'tag_format' => '<meta property="og:image" content="{{value}}">',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
+                'type' => 'image',
             ],
             [
                 'seo_tag' => 'twitter:card',

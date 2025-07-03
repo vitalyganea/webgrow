@@ -10,6 +10,7 @@ use App\Models\Admin\SeoTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
@@ -108,7 +109,7 @@ class PageController extends Controller
             }
         }
 
-        return view('admin.dashboard.pages.edit', compact('pages', 'languages', 'group_id', 'blockContents', 'seoData'));
+        return view('admin.dashboard.pages.edit', compact('pages', 'languages', 'group_id', 'blockContents', 'seoData', 'seoTags'));
     }
 
     public function update(Request $request, $group_id)
@@ -197,6 +198,7 @@ class PageController extends Controller
 
         return redirect()->route('admin.edit.page', $group_id)->with('success', 'Page updated.');
     }
+
     public function destroy($pagesGroupId)
     {
         // Get all pages by group_id
@@ -221,26 +223,58 @@ class PageController extends Controller
         $request->validate([
             'language_code' => 'required|string',
             'seo' => 'required|array',
+            'seo_images' => 'nullable|array',
+            'seo_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $languageCode = $request->input('language_code');
         $seoData = $request->input('seo');
+        $seoImages = $request->file('seo_images');
 
         foreach ($seoData as $tag => $value) {
             $seoTag = SeoTag::where('seo_tag', $tag)->first();
 
-            if ($seoTag && !is_null($value)) {
-                PageSeo::updateOrCreate(
-                    [
-                        'page_group_id' => $group_id,
-                        'seo_tag_id' => $seoTag->id,
-                        'lang' => $languageCode,
-                    ],
-                    ['value' => $value]
-                );
+            if ($seoTag) {
+                $finalValue = $value;
+
+                // Handle image uploads for image type SEO tags
+                if ($seoTag->type === 'image' && isset($seoImages[$tag])) {
+                    $file = $seoImages[$tag];
+                    $filename = time() . '_' . $tag . '_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('seo-images', $filename, 'public');
+                    $finalValue = Storage::url($path);
+                } elseif ($seoTag->type === 'image' && empty($value)) {
+                    // If it's an image field but no new image uploaded and no existing value, skip
+                    continue;
+                }
+
+                if (!is_null($finalValue)) {
+                    PageSeo::updateOrCreate(
+                        [
+                            'page_group_id' => $group_id,
+                            'seo_tag_id' => $seoTag->id,
+                            'lang' => $languageCode,
+                        ],
+                        ['value' => $finalValue]
+                    );
+                }
             }
         }
 
-        return redirect()->route('admin.edit.page', $group_id)->with('success', 'Seo updated with succes.');
+        return redirect()->route('admin.edit.page', $group_id)->with('success', 'SEO updated successfully.');
+    }
+
+    public function uploadSeoImage(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $file = $request->file('file');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $path = $file->storeAs('seo-images', $filename, 'public');
+        $url = Storage::url($path);
+
+        return response()->json(['location' => $url]);
     }
 }
