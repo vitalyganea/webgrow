@@ -61,7 +61,9 @@
                         @method('PUT')
 
                         <input type="hidden" name="pages[{{ $language->code }}][language_code]" value="{{ $language->code }}" />
-                        <input type="hidden" name="pages[{{ $language->code }}][deleted_blocks][]" class="deleted-blocks-input" value="" />
+
+                        <!-- Container for deleted blocks inputs -->
+                        <div class="deleted-blocks-container" data-lang="{{ $language->code }}"></div>
 
                         <div>
                             <x-admin.label for="title_{{ $language->code }}" value="Title" />
@@ -156,7 +158,7 @@
                 return;
             }
 
-            const blockId = Date.now().toString();
+            const blockId = 'new_' + Date.now().toString();
             const index = pageForm.querySelectorAll('.accordion').length;
 
             const wrapper = document.createElement('div');
@@ -229,7 +231,7 @@
                         return;
                     }
 
-                    const blockId = Date.now().toString();
+                    const blockId = 'new_' + Date.now().toString();
                     const index = pageForm.querySelectorAll('.accordion').length;
 
                     const wrapper = document.createElement('div');
@@ -322,7 +324,8 @@
                             toolbar: 'undo redo | styles | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen',
                             content_css: globalCssFiles,
                             autoresize_bottom_margin: 10,
-                            valid_elements: '*[*]',                            automatic_uploads: true,
+                            valid_elements: '*[*]',
+                            automatic_uploads: true,
                             images_file_types: 'jpg,jpeg,png,gif,webp',
                             images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
                                 const xhr = new XMLHttpRequest();
@@ -434,6 +437,20 @@
             });
         }
 
+        function addDeletedBlockInput(langCode, blockId) {
+            const form = document.querySelector(`#page-form-${langCode}`);
+            const deletedBlocksContainer = form.querySelector('.deleted-blocks-container');
+
+            // Create a new input for this deleted block
+            const deletedBlockInput = document.createElement('input');
+            deletedBlockInput.type = 'hidden';
+            deletedBlockInput.name = `pages[${langCode}][deleted_blocks][]`;
+            deletedBlockInput.value = blockId;
+            deletedBlockInput.className = 'deleted-block-input';
+
+            deletedBlocksContainer.appendChild(deletedBlockInput);
+        }
+
         function handleDeleteBlock(event) {
             const button = event.currentTarget;
             const blockId = button.dataset.blockId;
@@ -460,17 +477,9 @@
                             }
                         }
 
-                        // Check if blockId is numeric (indicating a database block)
-                        if (!isNaN(blockId)) {
-                            const form = document.querySelector(`#page-form-${langCode}`);
-                            let deletedBlocksInput = form.querySelector(`input[name="pages[${langCode}][deleted_blocks][]"]`);
-                            if (!deletedBlocksInput) {
-                                deletedBlocksInput = document.createElement('input');
-                                deletedBlocksInput.type = 'hidden';
-                                deletedBlocksInput.name = `pages[${langCode}][deleted_blocks][]`;
-                                form.appendChild(deletedBlocksInput);
-                            }
-                            deletedBlocksInput.value = blockId;
+                        // Check if blockId is from database (doesn't start with 'new_')
+                        if (!blockId.startsWith('new_')) {
+                            addDeletedBlockInput(langCode, blockId);
                         }
 
                         accordion.remove();
