@@ -13,12 +13,19 @@ class HomeController extends Controller
 {
     public function __invoke($langCode = null): View
     {
-        // If a language code is provided in the URL, use it and store it in the session
+        $allLanguages = Language::all();
+
+        // If a language code is provided in the URL, validate it exists in database
         if ($langCode) {
+            $languageExists = $allLanguages->where('code', $langCode)->isNotEmpty();
+
+            if (!$languageExists) {
+                abort(404, 'Language not found');
+            }
+
+            // Language exists, store it in session
             Session::put('language', $langCode);
         }
-
-        $allLanguages = Language::all();
 
         // Get the language from session, or fall back to the default language where main = 1
         $lang = Session::get('language') ?? Language::where('main', 1)->first()->code ?? 'ro';
@@ -28,6 +35,11 @@ class HomeController extends Controller
         $homePage = Page::where('language', $lang)
             ->with(['contents', 'seoValues.tag'])
             ->first();
+
+        // Optional: Also check if the home page exists for this language
+        if (!$homePage) {
+            abort(404, 'Page not found for the selected language');
+        }
 
         $seoTagsWithValues = [];
 
