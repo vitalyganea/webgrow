@@ -17,7 +17,7 @@
                     </thead>
                     <tbody class="text-sm text-foreground">
                     @forelse ($formRequests as $request)
-                        <tr class="border-t border-border hover:bg-accent/50 transition-colors">
+                        <tr class="border-t border-border hover:bg-accent/50 transition-colors {{ $request->seen == 0 ? 'bg-green-100' : '' }}">
                             <td class="px-4 py-2">{{ $request->id }}</td>
                             <td class="px-4 py-2">{{ Str::limit($request->url, 50) }}</td>
                             <td class="px-4 py-2">{{ $request->created_at }}</td>
@@ -119,6 +119,9 @@
                                                         icon: 'success',
                                                         confirmButtonText: 'OK',
                                                         confirmButtonColor: '#3085d6'
+                                                    }).then(() => {
+                                                        // Reload the page to update the highlighting
+                                                        location.reload();
                                                     });
                                                 } else {
                                                     throw new Error(data.message || 'Failed to mark as seen');
