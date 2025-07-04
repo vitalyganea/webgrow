@@ -33,10 +33,58 @@
 
 <script src="{{ asset('assets/js/script.js') }}"></script>
 
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // CSRF token injected from Laravel
         const csrfToken = '{{ csrf_token() }}';
+
+        // Languages data from backend
+        const allLanguages = @json($allLanguages);
+        const currentLanguage = '{{ $currentLanguage }}';
+
+        // Function to populate language select
+        function populateLanguageSelect() {
+            const languageSelect = document.getElementById('language');
+
+            if (languageSelect && allLanguages && allLanguages.length > 0) {
+                // Clear existing options
+                languageSelect.innerHTML = '';
+
+                // Add options dynamically
+                allLanguages.forEach(language => {
+                    const option = document.createElement('option');
+                    option.value = language.code; // assuming your Language model has a 'code' field
+                    option.textContent = language.name; // assuming your Language model has a 'name' field
+
+                    // Set as selected if it matches current language
+                    if (language.code === currentLanguage) {
+                        option.selected = true;
+                    }
+
+                    languageSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Populate language select on page load
+        populateLanguageSelect();
+
+        // Handle language change
+        const languageSelect = document.getElementById('language');
+        if (languageSelect) {
+            languageSelect.addEventListener('change', function() {
+                const selectedLanguage = this.value;
+                if (selectedLanguage) {
+                    // Get the base domain (without language prefix)
+                    const currentUrl = window.location.href;
+                    const baseUrl = window.location.origin;
+
+                    // Redirect to the new language URL
+                    window.location.href = `${baseUrl}/${selectedLanguage}`;
+                }
+            });
+        }
 
         // Select all forms with the class 'form-to-send'
         const forms = document.querySelectorAll('.form-to-send');

@@ -18,6 +18,8 @@ class HomeController extends Controller
             Session::put('language', $langCode);
         }
 
+        $allLanguages = Language::all();
+
         // Get the language from session, or fall back to the default language where main = 1
         $lang = Session::get('language') ?? Language::where('main', 1)->first()->code ?? 'ro';
 
@@ -45,6 +47,8 @@ class HomeController extends Controller
         return view('public.home.index', [
             'homePage' => $homePage,
             'seoTagsWithValues' => $seoTagsWithValues,
+            'currentLanguage' => $lang,
+            'allLanguages' => $allLanguages,
         ]);
     }
 }
