@@ -22,14 +22,14 @@
 
         <x-slot:content>
             @if ($languages->isEmpty())
-                <p class="text-red-500">No languages available. Please configure languages to edit pages.</p>
+                <p class="text-destructive">No languages available. Please configure languages to edit pages.</p>
             @else
                 <!-- Language Tabs -->
-                <div class="flex border-b border-gray-200 mb-4" id="language-tabs">
+                <div class="flex border-b border-border mb-4" id="language-tabs">
                     @foreach ($languages as $index => $language)
                         <button
                             type="button"
-                            class="px-4 py-2 focus:outline-none text-gray-600 {{ $loop->first ? 'text-blue-600 border-b-2 border-blue-600' : '' }}"
+                            class="px-4 py-2 focus:outline-none text-muted-foreground hover:text-foreground transition-colors {{ $loop->first ? 'text-primary border-b-2 border-primary' : '' }}"
                             data-lang="{{ $language->code }}"
                         >
                             {{ strtoupper($language->code) }}
@@ -92,22 +92,22 @@
 
                         @if(isset($blockContents[$language->code]) && is_array($blockContents[$language->code]))
                             @foreach ($blockContents[$language->code] as $blockId => $blockData)
-                                <div class="accordion border border-gray-300 overflow-hidden shadow-sm mb-4 transition-shadow duration-200" data-block-id="{{ $blockId }}" data-block-type="{{ $blockData['type'] }}">
-                                    <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
-                                        <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                                <div class="accordion border border-border overflow-hidden shadow-sm mb-4 transition-shadow duration-200 bg-card" data-block-id="{{ $blockId }}" data-block-type="{{ $blockData['type'] }}">
+                                    <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-accent hover:bg-accent/80 transition text-accent-foreground">
+                                        <i class="fas fa-grip-vertical text-muted-foreground mr-2"></i>
                                         <span class="flex-grow">{{ config('admin.admin-static-text.' . $blockData['type'], ucfirst($blockData['type'])) }}</span>
                                         <div class="flex items-center space-x-2">
-                                            <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
-                                            <button type="button" class="delete-block-btn text-red-500 hover:text-red-700" data-block-id="{{ $blockId }}" data-lang="{{ $language->code }}">
+                                            <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-muted-foreground"></i>
+                                            <button type="button" class="delete-block-btn text-destructive hover:text-destructive/80 transition-colors" data-block-id="{{ $blockId }}" data-lang="{{ $language->code }}">
                                                 <i class="fas fa-trash" aria-hidden="true"></i>
                                             </button>
                                         </div>
                                     </h4>
-                                    <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                                    <div class="accordion-body px-4 py-3 hidden bg-card transition-all duration-300">
                                         @if($blockData['type'] === 'html_template')
-                                            <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="tinymce-editor w-full rounded border border-gray-300 p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
+                                            <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="tinymce-editor w-full rounded border border-border bg-background text-foreground p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
                                         @else
-                                            <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="w-full rounded border border-gray-300 p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
+                                            <textarea id="editor-{{ $language->code }}-{{ $blockId }}" class="w-full rounded border border-border bg-background text-foreground p-2" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][content]">{{ $blockData['content'] }}</textarea>
                                         @endif
                                         <input type="hidden" name="pages[{{ $language->code }}][blocks][{{ $blockId }}][type]" value="{{ $blockData['type'] }}" />
                                     </div>
@@ -166,30 +166,31 @@
             const wrapper = document.createElement('div');
             wrapper.classList.add(
                 'accordion',
-                'border', 'border-gray-300',
+                'border', 'border-border',
                 'overflow-hidden',
                 'shadow-sm',
                 'mb-4',
-                'transition-shadow', 'duration-200'
+                'transition-shadow', 'duration-200',
+                'bg-card'
             );
             wrapper.setAttribute('data-block-id', blockId);
             wrapper.setAttribute('data-block-type', 'text');
 
             wrapper.innerHTML = `
-                <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
-                    <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-accent hover:bg-accent/80 transition text-accent-foreground">
+                    <i class="fas fa-grip-vertical text-muted-foreground mr-2"></i>
                     <span class="flex-grow">Text</span>
                     <div class="flex items-center space-x-2">
-                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
-                        <button type="button" class="delete-block-btn text-red-500 hover:text-red-700" data-block-id="${blockId}" data-lang="${langCode}">
+                        <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-muted-foreground"></i>
+                        <button type="button" class="delete-block-btn text-destructive hover:text-destructive/80 transition-colors" data-block-id="${blockId}" data-lang="${langCode}">
                             <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>
                     </div>
                 </h4>
-                <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                <div class="accordion-body px-4 py-3 hidden bg-card transition-all duration-300">
                     <textarea
                         id="editor_${langCode}_${blockId}"
-                        class="w-full rounded border border-gray-300 p-2"
+                        class="w-full rounded border border-border bg-background text-foreground p-2"
                         name="pages[${langCode}][blocks][${blockId}][content]"
                         rows="10"
                     >${content}</textarea>
@@ -239,30 +240,31 @@
                     const wrapper = document.createElement('div');
                     wrapper.classList.add(
                         'accordion',
-                        'border', 'border-gray-300',
+                        'border', 'border-border',
                         'overflow-hidden',
                         'shadow-sm',
                         'mb-4',
-                        'transition-shadow', 'duration-200'
+                        'transition-shadow', 'duration-200',
+                        'bg-card'
                     );
                     wrapper.setAttribute('data-block-id', blockId);
                     wrapper.setAttribute('data-block-type', 'html_template');
 
                     wrapper.innerHTML = `
-                        <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
-                            <i class="fas fa-grip-vertical text-gray-400 mr-2"></i>
+                        <h4 class="drag-handle accordion-header flex justify-between items-center font-semibold cursor-grab px-4 py-3 bg-accent hover:bg-accent/80 transition text-accent-foreground">
+                            <i class="fas fa-grip-vertical text-muted-foreground mr-2"></i>
                             <span class="flex-grow">{{ config('admin.admin-static-text.html_template') }}</span>
                             <div class="flex items-center space-x-2">
-                                <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-gray-400"></i>
-                                <button type="button" class="delete-block-btn text-red-500 hover:text-red-700" data-block-id="${blockId}" data-lang="${langCode}">
+                                <i class="fas fa-chevron-right transition-transform duration-300 transform arrow text-muted-foreground"></i>
+                                <button type="button" class="delete-block-btn text-destructive hover:text-destructive/80 transition-colors" data-block-id="${blockId}" data-lang="${langCode}">
                                     <i class="fas fa-trash" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </h4>
-                        <div class="accordion-body px-4 py-3 hidden bg-white transition-all duration-300">
+                        <div class="accordion-body px-4 py-3 hidden bg-card transition-all duration-300">
                             <textarea
                                 id="editor_${langCode}_${blockId}"
-                                class="tinymce-editor w-full rounded border border-gray-300 p-2"
+                                class="tinymce-editor w-full rounded border border-border bg-background text-foreground p-2"
                                 name="pages[${langCode}][blocks][${blockId}][content]"
                                 rows="10"
                             >${content}</textarea>
@@ -559,8 +561,8 @@
                 button.addEventListener('click', () => {
                     const lang = button.dataset.lang;
                     currentLang = lang;
-                    tabButtons.forEach(btn => btn.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600'));
-                    button.classList.add('border-b-2', 'border-blue-600', 'text-blue-600');
+                    tabButtons.forEach(btn => btn.classList.remove('border-b-2', 'border-primary', 'text-primary'));
+                    button.classList.add('border-b-2', 'border-primary', 'text-primary');
                     showLangSection(lang);
                 });
             });
@@ -575,12 +577,12 @@
                     title: 'Select Content Type',
                     html: `
                         <div class="space-y-2">
-                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="html_template">HTML Template</button>
-                            <button class="content-type-btn w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md" data-type="text">Text</button>
+                            <button class="content-type-btn w-full text-left px-4 py-2 bg-accent hover:bg-accent/80 text-accent-foreground rounded-md transition-colors" data-type="html_template">HTML Template</button>
+                            <button class="content-type-btn w-full text-left px-4 py-2 bg-accent hover:bg-accent/80 text-accent-foreground rounded-md transition-colors" data-type="text">Text</button>
                         </div>
                         <div id="content-block-selection" class="mt-4 hidden">
-                            <label class="block font-semibold mb-1">Select HTML Template</label>
-                            <select id="html-file-select" class="border border-gray-300 rounded-md p-2 w-full">
+                            <label class="block font-semibold mb-1 text-foreground">Select HTML Template</label>
+                            <select id="html-file-select" class="border border-border rounded-md p-2 w-full bg-background text-foreground">
                                 <option value="" disabled selected>Select a template</option>
                                 @foreach ($blockFolders as $folder)
                     @php
@@ -595,8 +597,8 @@
                     </select>
                 </div>
                 <div id="text-block-selection" class="mt-4 hidden">
-                    <label class="block font-semibold mb-1">Enter Text Content</label>
-                    <textarea id="text-content" class="w-full rounded border border-gray-300 p-2" rows="5"></textarea>
+                    <label class="block font-semibold mb-1 text-foreground">Enter Text Content</label>
+                    <textarea id="text-content" class="w-full rounded border border-border bg-background text-foreground p-2" rows="5"></textarea>
                 </div>
 `,
                     showCancelButton: true,
@@ -615,8 +617,8 @@
                         contentTypeButtons.forEach(button => {
                             button.addEventListener('click', () => {
                                 selectedType = button.dataset.type;
-                                contentTypeButtons.forEach(btn => btn.classList.remove('bg-blue-100'));
-                                button.classList.add('bg-blue-100');
+                                contentTypeButtons.forEach(btn => btn.classList.remove('bg-primary', 'text-primary-foreground'));
+                                button.classList.add('bg-primary', 'text-primary-foreground');
 
                                 if (selectedType === 'html_template') {
                                     contentBlockSelection.classList.remove('hidden');
@@ -643,7 +645,7 @@
                     preConfirm: () => {
                         const htmlFileSelect = Swal.getPopup().querySelector('#html-file-select');
                         const textContent = Swal.getPopup().querySelector('#text-content');
-                        const selectedButton = Swal.getPopup().querySelector('.content-type-btn.bg-blue-100');
+                        const selectedButton = Swal.getPopup().querySelector('.content-type-btn.bg-primary');
                         return {
                             type: selectedButton ? selectedButton.dataset.type : null,
                             value: selectedButton && selectedButton.dataset.type === 'html_template' ? htmlFileSelect.value : textContent.value
@@ -670,17 +672,17 @@
                     if (input.type === 'image') {
                         inputsHtml += `
                             <div>
-                                <label class="block font-semibold mb-1 capitalize">${input.tag}</label>
+                                <label class="block font-semibold mb-1 capitalize text-foreground">${input.tag}</label>
                                 <div class="space-y-2">
                                     <input
                                         type="file"
-                                        class="seo-image-input border border-gray-300 rounded-md p-2 w-full"
+                                        class="seo-image-input border border-border rounded-md p-2 w-full bg-background text-foreground"
                                         data-tag="${input.tag}"
                                         accept="image/*"
                                     />
                                     <input
                                         type="text"
-                                        class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                        class="seo-input border border-border rounded-md p-2 w-full bg-background text-foreground"
                                         data-tag="${input.tag}"
                                         value="${input.value}"
                                         placeholder="Or enter image URL"
@@ -692,10 +694,10 @@
                     } else {
                         inputsHtml += `
                             <div>
-                                <label class="block font-semibold mb-1 capitalize">${input.tag}</label>
+                                <label class="block font-semibold mb-1 capitalize text-foreground">${input.tag}</label>
                                 <input
                                     type="text"
-                                    class="seo-input border border-gray-300 rounded-md p-2 w-full"
+                                    class="seo-input border border-border rounded-md p-2 w-full bg-background text-foreground"
                                     data-tag="${input.tag}"
                                     value="${input.value}"
                                 />
