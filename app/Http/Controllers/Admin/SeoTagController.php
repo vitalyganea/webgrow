@@ -29,7 +29,7 @@ class SeoTagController extends Controller
 
         SeoTag::create($request->all());
 
-        return redirect()->route('admin.seo_tags.index')
+        return redirect()->route('admin.get.seo-tags')
             ->with('success', 'SEO Tag created successfully.');
     }
 
@@ -48,7 +48,7 @@ class SeoTagController extends Controller
 
         $seoTag->update($request->all());
 
-        return redirect()->route('admin.seo_tags.index')
+        return redirect()->route('admin.get.seo-tags')
             ->with('success', 'SEO Tag updated successfully.');
     }
 
@@ -56,7 +56,7 @@ class SeoTagController extends Controller
     {
         $seoTag->delete();
 
-        return redirect()->route('admin.seo_tags.index')
+        return redirect()->route('admin.get.seo-tags')
             ->with('success', 'SEO Tag deleted successfully.');
     }
 }
