@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Public;
-
 use App\Http\Controllers\Controller;
 use App\Models\Admin\FormRequest;
 use Illuminate\Http\Request;
@@ -10,7 +8,7 @@ class FormController extends Controller
 {
     public function store(Request $request)
     {
-        $requestBody = $request->except('currentUrl');
+        $requestBody = $request->except(['currentUrl', 'g-recaptcha-response', 'recaptcha_response']);
 
         FormRequest::create([
             'url' => $request->currentUrl,

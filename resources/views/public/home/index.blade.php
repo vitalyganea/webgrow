@@ -5,18 +5,19 @@
     @if(isset($seoTagsWithValues) && count($seoTagsWithValues))
         @foreach($seoTagsWithValues as $seoTagsWithValue)
             {!! $seoTagsWithValue !!}
-    @endforeach
-@endif
-<link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="{{ asset('assets/css/main.css')}}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+        @endforeach
+    @endif
+    <link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ asset('assets/css/main.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
+    <!-- Google reCAPTCHA with explicit rendering -->
+    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 </head>
 <body>
-
 
 @if(isset($homePage) && $homePage->contents && $homePage->contents->count())
     @foreach($homePage->contents as $content)
@@ -30,14 +31,22 @@
 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
-
 <script src="{{ asset('assets/js/script.js') }}"></script>
-
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // CSRF token injected from Laravel
         const csrfToken = '{{ csrf_token() }}';
+
+        // Replace with your actual reCAPTCHA site key
+        const recaptchaSiteKey = '{{ env('RECAPTCHA_SITE_KEY') }}';
+
+        // Debug: Check if site key is loaded
+        console.log('reCAPTCHA Site Key:', recaptchaSiteKey);
+        if (!recaptchaSiteKey || recaptchaSiteKey.trim() === '') {
+            console.error('reCAPTCHA Site Key is missing! Check your Laravel config and .env file.');
+            return;
+        }
 
         // Languages data from backend
         const allLanguages = @json($allLanguages);
@@ -54,8 +63,8 @@
                 // Add options dynamically
                 allLanguages.forEach(language => {
                     const option = document.createElement('option');
-                    option.value = language.code; // assuming your Language model has a 'code' field
-                    option.textContent = language.name; // assuming your Language model has a 'name' field
+                    option.value = language.code;
+                    option.textContent = language.name;
 
                     // Set as selected if it matches current language
                     if (language.code === currentLanguage) {
@@ -86,12 +95,108 @@
             });
         }
 
+        // Function to add reCAPTCHA to forms
+        function addRecaptchaToForms() {
+            const formsWithRecaptcha = document.querySelectorAll('.form-to-send.with-recaptcha');
+
+            formsWithRecaptcha.forEach((form, index) => {
+                // Create a unique ID for each reCAPTCHA container
+                const recaptchaId = `recaptcha-${index}`;
+
+                // Create reCAPTCHA container
+                const recaptchaContainer = document.createElement('div');
+                recaptchaContainer.id = recaptchaId;
+                recaptchaContainer.className = 'g-recaptcha';
+                recaptchaContainer.style.marginBottom = '15px';
+
+                // Find the submit button - prioritize button[type="submit"] then input[type="submit"]
+                const submitButton = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+
+                // Always insert before the submit button if it exists
+                if (submitButton) {
+                    form.insertBefore(recaptchaContainer, submitButton);
+                } else {
+                    // If no submit button found, log warning and append to end
+                    console.warn('No submit button found in form with reCAPTCHA. Adding reCAPTCHA to end of form.');
+                    form.appendChild(recaptchaContainer);
+                }
+
+                // Store the reCAPTCHA widget ID on the form for later use
+                form.dataset.recaptchaId = recaptchaId;
+            });
+        }
+
+        // Function to render reCAPTCHA widgets
+        function renderRecaptcha() {
+            if (typeof grecaptcha !== 'undefined' && grecaptcha.render) {
+                const formsWithRecaptcha = document.querySelectorAll('.form-to-send.with-recaptcha');
+
+                formsWithRecaptcha.forEach((form) => {
+                    const recaptchaId = form.dataset.recaptchaId;
+                    const container = document.getElementById(recaptchaId);
+
+                    if (container && !container.dataset.rendered) {
+                        try {
+                            const widgetId = grecaptcha.render(container, {
+                                'sitekey': recaptchaSiteKey,
+                                'theme': 'light',
+                                'size': 'normal'
+                            });
+                            container.dataset.widgetId = widgetId;
+                            container.dataset.rendered = 'true';
+                        } catch (error) {
+                            console.error('Error rendering reCAPTCHA:', error);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Add reCAPTCHA containers to forms
+        addRecaptchaToForms();
+
+        // Global callback function for reCAPTCHA
+        window.onRecaptchaLoad = function() {
+            console.log('reCAPTCHA loaded, rendering widgets...');
+            renderRecaptcha();
+        };
+
+        // Fallback: try to render after a short delay if callback doesn't work
+        setTimeout(function() {
+            if (typeof grecaptcha !== 'undefined') {
+                renderRecaptcha();
+            }
+        }, 2000);
+
         // Select all forms with the class 'form-to-send'
         const forms = document.querySelectorAll('.form-to-send');
 
         forms.forEach(form => {
             form.addEventListener('submit', async function(event) {
                 event.preventDefault();
+
+                // Check if this form has reCAPTCHA
+                const hasRecaptcha = form.classList.contains('with-recaptcha');
+
+                if (hasRecaptcha) {
+                    // Get reCAPTCHA response
+                    const recaptchaContainer = form.querySelector('.g-recaptcha');
+                    let recaptchaResponse = '';
+
+                    if (recaptchaContainer && recaptchaContainer.dataset.widgetId) {
+                        try {
+                            recaptchaResponse = grecaptcha.getResponse(parseInt(recaptchaContainer.dataset.widgetId));
+                        } catch (error) {
+                            console.error('Error getting reCAPTCHA response:', error);
+                        }
+                    }
+
+                    // Validate reCAPTCHA
+                    if (!recaptchaResponse || recaptchaResponse.length === 0) {
+                        alert('Vă rugăm să completați reCAPTCHA pentru a continua.');
+                        return;
+                    }
+                }
 
                 // Collect all form data dynamically
                 const formData = new FormData(form);
@@ -102,6 +207,18 @@
 
                 // Add the current URL to the data object
                 data.currentUrl = window.location.href;
+
+                // Add reCAPTCHA response if present
+                if (hasRecaptcha) {
+                    const recaptchaContainer = form.querySelector('.g-recaptcha');
+                    if (recaptchaContainer && recaptchaContainer.dataset.widgetId) {
+                        try {
+                            data.recaptcha_response = grecaptcha.getResponse(parseInt(recaptchaContainer.dataset.widgetId));
+                        } catch (error) {
+                            console.error('Error getting reCAPTCHA response:', error);
+                        }
+                    }
+                }
 
                 try {
                     const response = await fetch('/post-form', {
@@ -120,13 +237,49 @@
                         // Success handling
                         alert('Mesajul a fost trimis cu succes!');
                         form.reset(); // Clear the specific form
+
+                        // Reset reCAPTCHA if present
+                        if (hasRecaptcha) {
+                            const recaptchaContainer = form.querySelector('.g-recaptcha');
+                            if (recaptchaContainer && recaptchaContainer.dataset.widgetId) {
+                                try {
+                                    grecaptcha.reset(parseInt(recaptchaContainer.dataset.widgetId));
+                                } catch (error) {
+                                    console.error('Error resetting reCAPTCHA:', error);
+                                }
+                            }
+                        }
                     } else {
                         // Error handling
                         alert(result.message || 'A apărut o eroare la trimiterea mesajului.');
+
+                        // Reset reCAPTCHA on error if present
+                        if (hasRecaptcha) {
+                            const recaptchaContainer = form.querySelector('.g-recaptcha');
+                            if (recaptchaContainer && recaptchaContainer.dataset.widgetId) {
+                                try {
+                                    grecaptcha.reset(parseInt(recaptchaContainer.dataset.widgetId));
+                                } catch (error) {
+                                    console.error('Error resetting reCAPTCHA:', error);
+                                }
+                            }
+                        }
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     alert('A apărut o eroare la trimiterea mesajului.');
+
+                    // Reset reCAPTCHA on error if present
+                    if (hasRecaptcha) {
+                        const recaptchaContainer = form.querySelector('.g-recaptcha');
+                        if (recaptchaContainer && recaptchaContainer.dataset.widgetId) {
+                            try {
+                                grecaptcha.reset(parseInt(recaptchaContainer.dataset.widgetId));
+                            } catch (error) {
+                                console.error('Error resetting reCAPTCHA:', error);
+                            }
+                        }
+                    }
                 }
             });
         });
