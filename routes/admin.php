@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\ContentBackupController;
+use App\Http\Controllers\Admin\FileManagerController;
 use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Admin\LanguageController;
+use App\Http\Controllers\Admin\ScriptController;
 use App\Http\Controllers\Admin\SeoTagController;
 use App\Http\Controllers\Admin\FormController;
 use Illuminate\Support\Facades\Route;
@@ -94,6 +96,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('seo-tags/{seoTag}', [SeoTagController::class, 'update'])->name('update.seo-tag');
         Route::delete('seo-tags/{seoTag}', [SeoTagController::class, 'destroy'])->name('delete.seo-tag');
         Route::post('upload-seo-image', [PageController::class, 'uploadSeoImage'])->name('upload-seo-image');
+
+
+        Route::get('scripts', [ScriptController::class, 'index'])->name('get.scripts');
+        Route::get('scripts/create', [ScriptController::class, 'create'])->name('create.script');
+        Route::post('scripts/store', [ScriptController::class, 'store'])->name('store.script');
+        Route::get('scripts/{script}/edit', [ScriptController::class, 'edit'])->name('edit.script');
+        Route::put('scripts/{script}', [ScriptController::class, 'update'])->name('update.script');
+        Route::delete('scripts/{script}', [ScriptController::class, 'destroy'])->name('delete.script');
+
+        Route::get('file-manager', [FileManagerController::class, 'index'])->name('get.file-manager');
+        Route::post('file-manager/upload', [FileManagerController::class, 'upload'])->name('upload.file');
+        Route::post('file-manager/delete', [FileManagerController::class, 'delete'])->name('delete.file');
 
         Route::get('content-backup', [ContentBackupController::class, 'index'])->name('get.content-backup');
         Route::post('content-backup/create', [ContentBackupController::class, 'create'])->name('create.content-backup');

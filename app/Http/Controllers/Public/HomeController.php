@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Language;
 use App\Models\Admin\Page;
+use App\Models\Admin\Script;
 use App\Models\Admin\SeoTag;
 use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
@@ -56,11 +57,27 @@ class HomeController extends Controller
             }
         }
 
+        // Get scripts grouped by position
+        $scripts = Script::all();
+        $scriptsByPosition = $scripts->groupBy('position');
+
+        // Extract scripts for each position
+        $headScripts = $scriptsByPosition->get('head', collect());
+        $bodyTopScripts = $scriptsByPosition->get('body_top', collect());
+        $bodyBottomScripts = $scriptsByPosition->get('body_bottom', collect());
+
+
+
         return view('public.home.index', [
             'homePage' => $homePage,
             'seoTagsWithValues' => $seoTagsWithValues,
             'currentLanguage' => $lang,
             'allLanguages' => $allLanguages,
+
+            // Add script data
+            'headScripts' => $headScripts,
+            'bodyTopScripts' => $bodyTopScripts,
+            'bodyBottomScripts' => $bodyBottomScripts,
         ]);
     }
 }

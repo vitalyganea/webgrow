@@ -26,12 +26,26 @@ return [
         'active_routes' => ['admin.get.content-backup', 'admin.create.content-backup', 'admin.restore.content-backup'],
     ],
     [
+        'label' => 'Scripts',
+        'route' => 'admin.get.scripts',
+        'icon' => 'fa fa-code',
+        'active_routes' => ['admin.get.scripts', 'admin.edit.script', 'admin.create.script'],
+    ],
+    [
         'label' => 'Form Requests',
         'route' => 'admin.get.form-requests',
         'icon' => 'fas fa-comments',
         'active_routes' => ['admin.get.form-requests'],
         'count' => 'form_requests',
     ],
+
+    [
+        'label' => 'Public Files',
+        'route' => 'admin.get.file-manager',
+        'icon' => 'fa fa-file',
+        'active_routes' => ['admin.get.file-manager'],
+    ],
+
     [
         'label' => 'Settings',
         'route' => 'admin.settings.account',

@@ -16,18 +16,35 @@
 
     <!-- Google reCAPTCHA with explicit rendering -->
     <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
+
+        @foreach($headScripts as $script)
+            @if($script->type === 'external')
+                <script src="{{ $script->content }}"></script>
+            @else
+                {!! $script->content !!}
+            @endif
+        @endforeach
 </head>
 <body>
-
-@if(isset($homePage) && $homePage->contents && $homePage->contents->count())
-    @foreach($homePage->contents as $content)
-        {!! $content->content !!}
+    @foreach($bodyTopScripts as $script)
+        @if($script->type === 'external')
+            <script src="{{ $script->content }}"></script>
+        @else
+            {!! $script->content !!}
+        @endif
     @endforeach
-@endif
 
-<a href="#top" class="back-top-btn" aria-label="înapoi sus" data-back-top-btn>
-    <ion-icon name="caret-up" aria-hidden="true"></ion-icon>
+
+    @if(isset($homePage) && $homePage->contents && $homePage->contents->count())
+        @foreach($homePage->contents as $content)
+            {!! $content->content !!}
+        @endforeach
+    @endif
+
+<a href="tel:+373766688" class="phone-button" aria-label="Call phone number">
+    <i class="fa fa-phone" aria-hidden="true"></i>
 </a>
+
 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
@@ -42,7 +59,6 @@
         const recaptchaSiteKey = '{{ env('RECAPTCHA_SITE_KEY') }}';
 
         // Debug: Check if site key is loaded
-        console.log('reCAPTCHA Site Key:', recaptchaSiteKey);
         if (!recaptchaSiteKey || recaptchaSiteKey.trim() === '') {
             console.error('reCAPTCHA Site Key is missing! Check your Laravel config and .env file.');
             return;
@@ -157,7 +173,6 @@
 
         // Global callback function for reCAPTCHA
         window.onRecaptchaLoad = function() {
-            console.log('reCAPTCHA loaded, rendering widgets...');
             renderRecaptcha();
         };
 
@@ -284,6 +299,15 @@
             });
         });
     });
+
+    @foreach($bodyBottomScripts as $script)
+        @if($script->type === 'external')
+            <script src="{{ $script->content }}"></script>
+            @else
+                {!! $script->content !!}
+        @endif
+    @endforeach
+
 </script>
 </body>
 </html>
