@@ -47,6 +47,13 @@ return [
     ],
 
     [
+        'label' => 'Users',
+        'route' => 'admin.users.index',
+        'icon' => 'fa fa-user',
+        'active_routes' => ['admin.users.*'],
+    ],
+
+    [
         'label' => 'Settings',
         'route' => 'admin.settings.account',
         'icon' => 'fas fa-cog',

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\ScriptController;
 use App\Http\Controllers\Admin\SeoTagController;
 use App\Http\Controllers\Admin\FormController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Auth\AccountController;
 use App\Http\Controllers\Admin\Auth\DangerController;
@@ -43,6 +44,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Authenticated routes (e.g., logout, email verification)
     Route::middleware('auth')->group(function () {
+
+        Route::resource('users', UserController::class)->names([
+            'index' => 'users.index',
+            'create' => 'users.create',
+            'store' => 'users.store',
+            'edit' => 'users.edit',
+            'update' => 'users.update',
+            'destroy' => 'users.destroy',
+        ]);
+
+
+
         Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');
 
         Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
