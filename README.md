@@ -17,7 +17,6 @@ A comprehensive Content Management System (CMS) built with Laravel framework, de
 - **Language Management** - Add, edit, and manage multiple languages
 - **Content Localization** - Translate pages and content for different languages
 - **Language Switching** - Seamless language switching for visitors
-- **RTL Support** - Right-to-left language support
 - **Localized URLs** - SEO-friendly URLs for each language
 
 ### 🔍 Advanced SEO Tools
